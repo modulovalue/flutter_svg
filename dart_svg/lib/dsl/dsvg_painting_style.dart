@@ -1,0 +1,4 @@
+enum DsvgPaintingStyle {
+  fill,
+  stroke,
+}

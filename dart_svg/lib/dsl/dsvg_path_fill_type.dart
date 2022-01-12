@@ -1,0 +1,4 @@
+enum DsvgPathFillType {
+  nonZero,
+  evenOdd,
+}

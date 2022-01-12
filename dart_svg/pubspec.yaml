@@ -1,0 +1,16 @@
+name: dart_svg
+version: 1.0.0
+publish_to: none
+
+environment:
+  sdk: '>=2.15.0-0 <3.0.0'
+
+dependencies:
+  xml:
+    git:
+      url: https://github.com/modulovalue/dart-xml.git
+      ref: main
+
+dev_dependencies:
+  extra_pedantic: ^1.5.0
+  vector_math: 

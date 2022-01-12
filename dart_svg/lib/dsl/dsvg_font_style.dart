@@ -1,0 +1,4 @@
+enum DsvgFontStyle {
+  normal,
+  italic,
+}
