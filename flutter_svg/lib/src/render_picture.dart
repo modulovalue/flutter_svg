@@ -1,3 +1,5 @@
+// ignore_for_file: prefer_asserts_with_message
+
 import 'dart:async';
 import 'dart:math';
 import 'dart:typed_data';
@@ -9,8 +11,8 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
-import 'package:flutter_svg/error_delegates/error_delegate_flutter_error.dart';
 
+import 'error_delegate_flutter_error.dart';
 import 'io/file/file.dart';
 import 'io/http/http.dart';
 
@@ -112,7 +114,6 @@ class RenderPicture extends RenderBox {
   bool _matchTextDirection;
 
   set matchTextDirection(bool value) {
-    assert(value != null); // ignore: unnecessary_null_comparison
     if (value != _matchTextDirection) {
       _matchTextDirection = value;
       markNeedsPaint();
@@ -121,9 +122,9 @@ class RenderPicture extends RenderBox {
 
   bool get _flipHorizontally => _matchTextDirection && _textDirection == TextDirection.rtl;
 
-  /// The text direction with which to resolve [alignment].
+  /// The text direction with which to resolve alignment.
   ///
-  /// This may be changed to null, but only after the [alignment] and
+  /// This may be changed to null, but only after the alignment and
   /// [matchTextDirection] properties have been changed to values that do not
   /// depend on the direction.
   TextDirection? get textDirection => _textDirection;
@@ -149,11 +150,11 @@ class RenderPicture extends RenderBox {
     _pictureHandle.layer = _picture?.createLayer();
     assert(() {
       if (_pictureHandle.layer != null) {
-        assert(_pictureHandle.layer!.isComplexHint);
-        assert(!_pictureHandle.layer!.willChangeHint);
+        assert(_pictureHandle.layer!.isComplexHint, "");
+        assert(!_pictureHandle.layer!.willChangeHint, "");
       }
       return true;
-    }());
+    }(), "");
     markNeedsPaint();
   }
 
@@ -193,8 +194,8 @@ class RenderPicture extends RenderBox {
   final LayerHandle<PictureLayer> _pictureHandle = LayerHandle<PictureLayer>();
 
   void _addPicture(PaintingContext context, Offset offset) {
-    assert(picture != null);
-    assert(_pictureHandle.layer != null);
+    assert(picture != null, "Picture can't be null.");
+    assert(_pictureHandle.layer != null, "The picutres layer can't be null.");
     if (allowDrawingOutsideViewBox != true) {
       final Rect viewportRect = Offset.zero & _picture!.viewport.size;
       _clipHandle.layer = context.pushClipRect(
@@ -305,9 +306,6 @@ bool scaleCanvasToViewBox(
 }
 
 /// The signature of a function that can decode raw SVG data into a [Picture].
-///
-/// Used by [PictureProvider]. Several useful methods are provided in the [Svg]
-/// class.
 typedef PictureInfoDecoder<T> = Future<PictureInfo> Function(
   T data,
   ColorFilter? colorFilter,
@@ -523,7 +521,7 @@ const PictureConfiguration emptyPictureConfiguration = PictureConfiguration();
 /// To obtain an [PictureStream] from an [PictureProvider], call [resolve],
 /// passing it an [PictureConfiguration] object.
 ///
-/// [PictureProvider] uses the global [pictureCache] to cache pictures.
+/// [PictureProvider] uses the global pictureCache to cache pictures.
 ///
 /// The type argument `T` is the type of the object used to represent a resolved
 /// configuration. This is also the type used for the key in the picture cache. It
@@ -540,7 +538,7 @@ const PictureConfiguration emptyPictureConfiguration = PictureConfiguration();
 ///
 /// The following shows the code required to write a widget that fully conforms
 /// to the [PictureProvider] and [Widget] protocols. (It is essentially a
-/// bare-bones version of the [widgets.Picture] widget.)
+/// bare-bones version of the widgets.Picture widget.)
 ///
 /// ```dart
 /// class MyPicture extends StatefulWidget {
@@ -610,6 +608,7 @@ const PictureConfiguration emptyPictureConfiguration = PictureConfiguration();
 ///   }
 /// }
 /// ```
+// TODO inject the theme?
 @optionalTypeArgs
 abstract class PictureProvider<T, U> {
   /// Abstract const constructor. This constructor enables subclasses to provide
@@ -674,7 +673,7 @@ abstract class PictureProvider<T, U> {
           ),
         );
       },
-    ).catchError((Object exception, StackTrace stack) async {
+    ).catchError((final Object exception, final StackTrace stack) async {
       if (onError != null) {
         onError(exception, stack);
         return;
@@ -693,7 +692,7 @@ abstract class PictureProvider<T, U> {
           },
         ),
       );
-    });
+    },);
     return stream;
   }
 
@@ -763,19 +762,19 @@ class PictureKey<T> {
   String toString() => 'PictureKey($keyData, colorFilter: $colorFilter, theme: $theme)';
 }
 
-/// Key for the picture obtained by an [AssetPicture] or [ExactAssetPicture].
+/// Key for the picture obtained by an AssetPicture or [ExactAssetPicture].
 ///
-/// This is used to identify the precise resource in the [pictureCache].
+/// This is used to identify the precise resource in the pictureCache.
 @immutable
 class AssetBundlePictureKey extends PictureKey<String> {
-  /// Creates the key for an [AssetPicture] or [AssetBundlePictureProvider].
+  /// Creates the key for an AssetPicture or [AssetBundlePictureProvider].
   ///
   /// The arguments must not be null.
   const AssetBundlePictureKey({
     required this.bundle,
     required String name,
-    ColorFilter? colorFilter,
     required DsvgTheme theme,
+    ColorFilter? colorFilter,
   })  :
         // ignore: unnecessary_null_comparison
         assert(bundle != null),
@@ -820,20 +819,28 @@ class AssetBundlePictureKey extends PictureKey<String> {
 abstract class AssetBundlePictureProvider extends PictureProvider<AssetBundlePictureKey, String> {
   /// Abstract const constructor. This constructor enables subclasses to provide
   /// const constructors so that they can be used in const expressions.
-  AssetBundlePictureProvider(PictureInfoDecoderBuilder<String> decoderBuilder, ColorFilter? colorFilter)
-      :
-        // ignore: unnecessary_null_comparison
-        assert(decoderBuilder != null),
-        super(colorFilter, decoderBuilder: decoderBuilder);
+  AssetBundlePictureProvider(
+    final PictureInfoDecoderBuilder<String> decoderBuilder,
+    final ColorFilter? colorFilter,
+  ) : super(
+          colorFilter,
+          decoderBuilder: decoderBuilder,
+        );
 
   /// Converts a key into an [PictureStreamCompleter], and begins fetching the
   /// picture using [_loadAsync].
   @override
-  PictureStreamCompleter load(AssetBundlePictureKey key, {PictureErrorListener? onError}) {
-    return OneFramePictureStreamCompleter(_loadAsync(key, onError), informationCollector: () sync* {
-      yield DiagnosticsProperty<PictureProvider>('Picture provider', this);
-      yield DiagnosticsProperty<AssetBundlePictureKey>('Picture key', key);
-    });
+  PictureStreamCompleter load(
+    final AssetBundlePictureKey key, {
+    final PictureErrorListener? onError,
+  }) {
+    return OneFramePictureStreamCompleter(
+      _loadAsync(key, onError),
+      informationCollector: () sync* {
+        yield DiagnosticsProperty<PictureProvider>('Picture provider', this);
+        yield DiagnosticsProperty<AssetBundlePictureKey>('Picture key', key);
+      },
+    );
   }
 
   /// Fetches the picture from the asset bundle, decodes it, and returns a
@@ -889,10 +896,6 @@ class NetworkPictureKeyData {
 /// Fetches the given URL from the network, associating it with the given scale.
 ///
 /// The picture will be cached regardless of cache headers from the server.
-///
-/// See also:
-///
-///  * [SvgPicture.network] for a shorthand of an [SvgPicture] widget backed by [NetworkPicture].
 // TODO(ianh): Find some way to honour cache headers to the extent that when the
 // last reference to a picture is released, we proactively evict the picture from
 // our cache if the headers describe the picture as having expired at that point.
@@ -910,7 +913,7 @@ class NetworkPicture extends PictureProvider<PictureKey<NetworkPictureKeyData>, 
   /// The URL from which the picture will be fetched.
   final String url;
 
-  /// The HTTP headers that will be used with [HttpClient.get] to fetch picture from network.
+  /// The HTTP headers that will be used with HttpClient.get to fetch picture from network.
   final Map<String, String>? headers;
 
   @override
@@ -966,10 +969,6 @@ class NetworkPicture extends PictureProvider<PictureKey<NetworkPictureKeyData>, 
 
 /// Decodes the given [File] object as a picture, associating it with the given
 /// scale.
-///
-/// See also:
-///
-///  * [SvgPicture.file] for a shorthand of an [SvgPicture] widget backed by [FilePicture].
 class FilePicture extends PictureProvider<PictureKey<String>, Uint8List> {
   /// Creates an object that decodes a [File] as a picture.
   ///
@@ -1039,10 +1038,6 @@ class FilePicture extends PictureProvider<PictureKey<String>, Uint8List> {
 /// that changes over time, consider creating a new subclass of [PictureProvider]
 /// whose [load] method returns a subclass of [PictureStreamCompleter] that can
 /// handle providing multiple pictures.
-///
-/// See also:
-///
-///  * [SvgPicture.memory] for a shorthand of an [SvgPicture] widget backed by [MemoryPicture].
 class MemoryPicture extends PictureProvider<PictureKey<Uint8List>, Uint8List> {
   /// Creates an object that decodes a [Uint8List] buffer as a picture.
   ///
@@ -1107,10 +1102,6 @@ class MemoryPicture extends PictureProvider<PictureKey<Uint8List>, Uint8List> {
 /// that changes over time, consider creating a new subclass of [PictureProvider]
 /// whose [load] method returns a subclass of [PictureStreamCompleter] that can
 /// handle providing multiple pictures.
-///
-/// See also:
-///
-///  * [SvgPicture.string] for a shorthand of an [SvgPicture] widget backed by [StringPicture].
 class StringPicture extends PictureProvider<PictureKey<String>, String> {
   /// Creates an object that decodes a [Uint8List] buffer as a picture.
   ///
@@ -1171,17 +1162,17 @@ class StringPicture extends PictureProvider<PictureKey<String>, String> {
 
 /// Fetches a picture from an [AssetBundle], associating it with the given scale.
 ///
-/// This implementation requires an explicit final [assetName] and [scale] on
+/// This implementation requires an explicit final [assetName] and scale on
 /// construction, and ignores the device pixel ratio and size in the
 /// configuration passed into [resolve]. For a resolution-aware variant that
 /// uses the configuration to pick an appropriate picture based on the device
-/// pixel ratio and size, see [AssetPicture].
+/// pixel ratio and size, see AssetPicture.
 ///
 /// ## Fetching assets
 ///
 /// When fetching a picture provided by the app itself, use the [assetName]
 /// argument to name the asset to choose. For instance, consider a directory
-/// `icons` with a picture `heart.png`. First, the [pubspec.yaml] of the project
+/// `icons` with a picture `heart.png`. First, the pubspec.yaml of the project
 /// should specify its assets in the `flutter` section:
 ///
 /// ```yaml
@@ -1234,15 +1225,10 @@ class StringPicture extends PictureProvider<PictureKey<String>, String> {
 ///
 /// Note that the `lib/` is implied, so it should not be included in the asset
 /// path.
-///
-/// See also:
-///
-///  * [SvgPicture.asset] for a shorthand of an [SvgPicture] widget backed by
-///    [ExactAssetPicture] when using a scale.
 class ExactAssetPicture extends AssetBundlePictureProvider {
   /// Creates an object that fetches the given picture from an asset bundle.
   ///
-  /// The [assetName] and [scale] arguments must not be null. The [scale] arguments
+  /// The [assetName] and scale arguments must not be null. The scale arguments
   /// defaults to 1.0. The [bundle] argument may be null, in which case the
   /// bundle provided in the [PictureConfiguration] passed to the [resolve] call
   /// will be used instead.
@@ -1440,7 +1426,7 @@ class PictureInfo {
   final Rect viewport;
 
   /// The requested size for this picture, which may be different than the
-  /// [viewport.targetSize].
+  /// viewport.targetSize.
   final Size size;
 
   /// Creates a [PictureLayer] that will suitably manage the lifecycle of the
@@ -1468,7 +1454,7 @@ class PictureInfo {
 /// frame is requested if the call was asynchronous (after the current frame)
 /// and no rendering frame is requested if the call was synchronous (within the
 /// same stack frame as the call to [PictureStream.addListener]).
-typedef PictureListener = Function(PictureInfo? image, bool synchronousCall);
+typedef PictureListener = void Function(PictureInfo? image, bool synchronousCall);
 
 /// A handle to an image resource.
 ///
@@ -1509,12 +1495,15 @@ class PictureStream with Diagnosticable {
   /// represent multiple images over time, assign it a completer that
   /// completes several images in succession.
   void setCompleter(PictureStreamCompleter value) {
-    assert(_completer == null);
+    assert(
+      _completer == null,
+      "Completer must have not been set before.",
+    );
     _completer = value;
     if (_listeners != null) {
       final List<_PictureListenerPair> initialListeners = _listeners!;
       _listeners = null;
-      for (_PictureListenerPair pair in initialListeners) {
+      for (final _PictureListenerPair pair in initialListeners) {
         _completer!.addListener(pair.listener, onError: pair.errorListener);
       }
     }
@@ -1543,11 +1532,15 @@ class PictureStream with Diagnosticable {
   void removeListener(PictureListener listener) {
     if (_completer != null) {
       return _completer!.removeListener(listener);
+    } else {
+      assert(
+        _listeners != null,
+        "Listener must have been set before.",
+      );
+      _listeners!.removeWhere(
+        (_PictureListenerPair pair) => pair.listener == listener,
+      );
     }
-    assert(_listeners != null);
-    _listeners!.removeWhere(
-      (_PictureListenerPair pair) => pair.listener == listener,
-    );
   }
 
   /// Returns an object which can be used with `==` to determine if this
@@ -1604,7 +1597,7 @@ class PictureStream with Diagnosticable {
 /// Base class for those that manage the loading of [dart:ui.Picture] objects for
 /// [PictureStream]s.
 ///
-/// [PictureStreamListener] objects are rarely constructed directly. Generally, an
+/// PictureStreamListener objects are rarely constructed directly. Generally, an
 /// [PictureProvider] subclass will return an [PictureStream] and automatically
 /// configure it with the right [PictureStreamCompleter] when possible.
 abstract class PictureStreamCompleter with Diagnosticable {
@@ -1645,7 +1638,7 @@ abstract class PictureStreamCompleter with Diagnosticable {
     if (_current != null) {
       try {
         listener(_current, true);
-      } catch (exception, stack) {
+      } on Object catch (exception, stack) {
         _handleImageError(
           ErrorDescription('by a synchronously-called image listener'),
           exception,
@@ -1677,10 +1670,10 @@ abstract class PictureStreamCompleter with Diagnosticable {
       return;
     }
     final List<_PictureListenerPair> localListeners = List<_PictureListenerPair>.from(_listeners);
-    for (_PictureListenerPair listenerPair in localListeners) {
+    for (final _PictureListenerPair listenerPair in localListeners) {
       try {
         listenerPair.listener(picture, false);
-      } catch (exception, stack) {
+      } on Object catch (exception, stack) {
         if (listenerPair.errorListener != null) {
           listenerPair.errorListener!(exception, stack);
         } else {
@@ -1749,8 +1742,7 @@ class OneFramePictureStreamCompleter extends PictureStreamCompleter {
   OneFramePictureStreamCompleter(
     Future<PictureInfo?> picture, {
     InformationCollector? informationCollector,
-    // ignore: unnecessary_null_comparison
-  }) : assert(picture != null) {
+  }) {
     picture.then<void>(
       setPicture,
       onError: (Object error, StackTrace stack) {

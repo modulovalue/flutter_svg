@@ -1,7 +1,7 @@
 import 'package:dart_svg/dsl/dsvg.dart';
 import 'package:dart_svg/parser/parser.dart';
 import 'package:flutter/foundation.dart';
-import 'package:flutter_svg/error_delegates/error_delegate_flutter_error.dart';
+import 'package:flutter_svg/src/error_delegate_flutter_error.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {

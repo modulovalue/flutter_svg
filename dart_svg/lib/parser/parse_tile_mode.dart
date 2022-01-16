@@ -3,7 +3,7 @@ import '../parser/parse_attribute.dart';
 
 /// Parses a `spreadMethod` attribute into a [DsvgTileMode].
 DsvgTileMode parseTileMode(
-  final Map<String, String> attributes,
+  final String? Function(String) attributes,
 ) {
   final String? spreadMethod = getAttribute(
     attributes,

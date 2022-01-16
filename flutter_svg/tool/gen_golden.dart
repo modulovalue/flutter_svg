@@ -4,10 +4,10 @@ import 'dart:ui';
 
 import 'package:dart_svg/dsl/dsvg.dart';
 import 'package:dart_svg/parser/parser.dart';
-import 'package:flutter_svg/error_delegates/error_delegate_flutter_error.dart';
-import 'package:flutter_svg/flutter/interpret.dart';
-import 'package:flutter_svg/flutter/util.dart';
-import 'package:path/path.dart' as path;
+import 'package:flutter_svg/src/error_delegate_flutter_error.dart';
+import 'package:flutter_svg/src/interpret.dart';
+import 'package:flutter_svg/src/util.dart';
+import 'package:path/path.dart';
 
 // There's probably some better way to do this, but for now run `flutter test tool/gen_golden.dart
 // should exclude files that
@@ -18,10 +18,10 @@ import 'package:path/path.dart' as path;
 Future<Image> getSvgImage(
   final String svgData,
 ) async {
-  final PictureRecorder rec = PictureRecorder();
-  final Canvas canvas = Canvas(rec);
-  const Size size = Size(200.0, 200.0);
-  final DsvgParentRoot svgRoot = parseSvg(
+  final rec = PictureRecorder();
+  final canvas = Canvas(rec);
+  const size = Size(200.0, 200.0);
+  final svgRoot = parseSvg(
     xml: svgData,
     errorDelegate: const SvgErrorDelegateFlutterWarnImpl(
       key: 'GenGoldenTest',
@@ -38,40 +38,40 @@ Future<Image> getSvgImage(
     canvas,
   );
   canvas.drawPaint(Paint()..color = const Color(0xFFFFFFFF));
-  renderDrawable(
-    drawable: DsvgDrawableStyleable<DsvgStyleable>(
-      styleable: DsvgDrawableParent<DsvgParentRoot>(
-        parent: svgRoot,
-      ),
-    ),
+  await RenderContent.renderRoot(
+    a: svgRoot,
     canvas: canvas,
-    bounds: dsvgRectToFlutter(
-      svgRoot.viewport.viewBoxRect,
+    renderChild: (final rect, final child) => RenderContent.renderDrawable(
+      canvas: canvas,
+      drawable: child,
     ),
   );
-  final Picture pict = rec.endRecording();
-  return await pict.toImage(size.width.toInt(), size.height.toInt());
+  final pict = rec.endRecording();
+  return pict.toImage(
+    size.width.toInt(),
+    size.height.toInt(),
+  );
 }
 
 Future<Uint8List> getSvgPngBytes(
   final String svgData,
 ) async {
-  final Image image = await getSvgImage(svgData);
-  final ByteData bytes = (await image.toByteData(format: ImageByteFormat.png))!;
+  final image = await getSvgImage(svgData);
+  final bytes = (await image.toByteData(format: ImageByteFormat.png))!;
   return bytes.buffer.asUint8List();
 }
 
 Future<Uint8List> getSvgRgbaBytes(
   final String svgData,
 ) async {
-  final Image image = await getSvgImage(svgData);
-  final ByteData bytes = (await image.toByteData(format: ImageByteFormat.rawRgba))!;
+  final image = await getSvgImage(svgData);
+  final bytes = (await image.toByteData(format: ImageByteFormat.rawRgba))!;
   return bytes.buffer.asUint8List();
 }
 
 Iterable<File> getSvgFileNames() sync* {
-  final Directory dir = Directory('./example/assets');
-  for (final FileSystemEntity fe in dir.listSync(recursive: true)) {
+  final dir = Directory('./example/assets');
+  for (final fe in dir.listSync(recursive: true)) {
     if (fe is File && fe.path.toLowerCase().endsWith('.svg')) {
       // Skip text based tests unless we're on Linux - these have
       // subtle platform specific differences.
@@ -92,14 +92,18 @@ String getGoldenFileName(
         .replaceAll('.svg', '.png');
 
 Future<void> main() async {
-  for (File fe in getSvgFileNames()) {
-    final String pathName = getGoldenFileName(fe.path);
-    final Directory goldenDir = Directory(path.dirname(pathName));
+  for (final fe in getSvgFileNames()) {
+    final pathName = getGoldenFileName(fe.path);
+    final goldenDir = Directory(dirname(pathName));
     if (!goldenDir.existsSync()) {
       goldenDir.createSync(recursive: true);
     }
-    final File output = File(pathName);
+    final output = File(pathName);
     print(pathName);
-    await output.writeAsBytes(await getSvgPngBytes(await fe.readAsString()));
+    await output.writeAsBytes(
+      await getSvgPngBytes(
+        await fe.readAsString(),
+      ),
+    );
   }
 }

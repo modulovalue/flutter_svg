@@ -18,6 +18,7 @@ dependencies:
   vector_math: ^2.1.0
 
 dev_dependencies:
+  extra_pedantic: ^1.5.0
   flutter_test:
     sdk: flutter
   mocktail: ^0.1.4

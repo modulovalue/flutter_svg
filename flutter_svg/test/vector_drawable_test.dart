@@ -2,9 +2,9 @@ import 'dart:typed_data';
 import 'dart:ui';
 
 import 'package:dart_svg/dsl/dsvg.dart';
-import 'package:flutter_svg/error_delegates/error_delegate_flutter_error.dart';
-import 'package:flutter_svg/flutter/render_picture.dart';
-import 'package:flutter_svg/flutter/svg.dart';
+import 'package:flutter_svg/src/error_delegate_flutter_error.dart';
+import 'package:flutter_svg/src/render_picture.dart';
+import 'package:flutter_svg/src/svg.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
@@ -30,14 +30,14 @@ void main() {
         transform: null,
       ),
     );
-    expect(root.groupData.style!.pathFillType, styleA.pathFillType);
+    expect(root.groupData.style.pathFillType, styleA.pathFillType);
     root = mergeStyleable<DsvgDrawableParent<DsvgParentRoot>>(
       DsvgDrawableParent<DsvgParentRoot>(
         parent: root,
       ),
       styleB,
     ).parent;
-    expect(root.groupData.style!.pathFillType, styleB.pathFillType);
+    expect(root.groupData.style.pathFillType, styleB.pathFillType);
   });
   test('SvgPictureDecoder uses color filter properly', () async {
     final PictureInfo info = await svgPictureStringDecoder(

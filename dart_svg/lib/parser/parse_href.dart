@@ -5,7 +5,7 @@ import 'parse_attribute.dart';
 /// SVG 1.1 specifies that these attributes should be in the xlink namespace.
 /// SVG 2 deprecates that namespace.
 String? getHrefAttribute(
-  final Map<String, String> attributes,
+  final String? Function(String) attributes,
 ) =>
     getAttribute(
       attributes,

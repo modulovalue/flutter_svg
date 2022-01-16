@@ -4,7 +4,7 @@ import 'parse_raw_fill_rule.dart';
 
 /// Parses a `fill-rule` attribute into a [DsvgPathFillType].
 DsvgPathFillType? parseFillRule(
-  final Map<String, String> attributes, [
+  final String? Function(String) attributes, [
   final String attr = 'fill-rule',
   final String? def = 'nonzero',
 ]) {

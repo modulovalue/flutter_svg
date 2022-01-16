@@ -1,5 +1,25 @@
 import 'parse_double.dart';
 
+double? tryParseDoubleWithUnits(
+  final String? rawDouble, {
+  required double fontSize,
+  required double xHeight,
+}) {
+  final value = tryParseDouble(
+    rawDouble,
+  );
+  if (value != null) {
+    return value *
+        getMultiplier(
+          rawDouble: rawDouble!,
+          fontSize: fontSize,
+          xHeight: xHeight,
+        );
+  } else {
+    return null;
+  }
+}
+
 /// Parses a [rawDouble] `String` to a `double`
 /// taking into account absolute and relative units
 /// (`px`, `em` or `ex`).
@@ -16,28 +36,38 @@ import 'parse_double.dart';
 /// stripped off when parsed to a `double`.
 ///
 /// Passing `null` will return `null`.
-double? parseDoubleWithUnits(
-  String? rawDouble, {
+double parseDoubleWithUnits(
+  final String rawDouble, {
   required double fontSize,
   required double xHeight,
-  final bool tryParse = false,
 }) {
-  double unit = 1.0;
-  // 1 em unit is equal to the current font size.
-  if (rawDouble?.contains('em') ?? false) {
-    unit = fontSize;
-  }
-  // 1 ex unit is equal to the current x-height.
-  else if (rawDouble?.contains('ex') ?? false) {
-    unit = xHeight;
-  }
-  final double? value = parseDouble(
+  final value = parseDouble(
     rawDouble,
-    tryParse: tryParse,
   );
-  if (value != null) {
-    return value * unit;
+  // TODO refactor that and share in both.
+  return value *
+      getMultiplier(
+        rawDouble: rawDouble,
+        fontSize: fontSize,
+        xHeight: xHeight,
+      );
+}
+
+double getMultiplier({
+  required final String rawDouble,
+  required final double fontSize,
+  required final double xHeight,
+}) {
+  if (rawDouble.contains('em')) {
+    // 1 em unit is equal to the current font size.
+    return fontSize;
+  } else if (rawDouble.contains('ex')) {
+    // 1 ex unit is equal to the current x-height.
+    return xHeight;
+  } else if (rawDouble.contains('pt')) {
+    // 1 pt unit is equal to about 1.33333 pixel at 96 dpi
+    return 1.3333333333;
   } else {
-    return null;
+    return 1.0;
   }
 }

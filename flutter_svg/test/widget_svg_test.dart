@@ -2,15 +2,15 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
-import 'dart:ui' show window;
+import 'dart:ui';
 
 import 'package:dart_svg/dsl/dsvg.dart';
 import 'package:dart_svg/parser/parser.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/widgets.dart';
-import 'package:flutter_svg/error_delegates/error_delegate_flutter_error.dart';
-import 'package:flutter_svg/flutter/render_picture.dart';
-import 'package:flutter_svg/flutter/svg.dart';
+import 'package:flutter_svg/src/error_delegate_flutter_error.dart';
+import 'package:flutter_svg/src/render_picture.dart';
+import 'package:flutter_svg/src/svg.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -55,6 +55,7 @@ Future<void> _checkWidgetAndGolden(
 
 void main() {
   late FakeHttpClientResponse fakeResponse;
+  // ignore: close_sinks
   late FakeHttpClientRequest fakeRequest;
   late FakeHttpClient fakeHttpClient;
   setUpAll(() {

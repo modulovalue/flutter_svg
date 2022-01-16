@@ -11,12 +11,13 @@ import '../util/event_to_source_location.dart';
 import 'parse_attribute.dart';
 import 'parse_iri.dart';
 
+// TODO take a look at https://github.com/wasabia/three_dart/blob/90438acb0b8bcc4eeda63f79beab7db6d2fe8298/lib/three3d/loaders/SVGLoaderParser.dart
 DsvgParseResult parseSvg({
   required final String xml,
   required final DsvgTheme theme,
   required final SvgErrorDelegate errorDelegate,
 }) {
-  final _SvgParserStateImpl state = _SvgParserStateImpl(
+  final state = _SvgParserStateImpl(
     eventIterator: parseEvents(
       xml,
     ).iterator,
@@ -25,39 +26,39 @@ DsvgParseResult parseSvg({
   return DsvgParseResult(
     root: () {
       // Drive the [XmlTextReader] to EOF and produce a [DsvgDrawableRoot].
-      for (final XmlEvent event in state.readSubtree()) {
+      for (final event in state.readSubtree()) {
         if (event is XmlStartElementEvent) {
           if (event.name == 'defs') {
-            // we won't get a call to `endElement()` if we're in a '<defs/>'
+            // We won't get a call to `endElement()` if we're in a '<defs/>'
             state.inDefs = !event.isSelfClosing;
           } else {
-            final DsvgPath Function()? pathFunc = parsePath(
+            final pathFunc = parsePath(
               pathName: event.name,
-              attributes: state.currentAttributes,
+              attributes: state.currentAttributes.typedGet,
               xHeight: theme.xHeight,
               fontSize: theme.fontSize,
             );
             if (pathFunc != null) {
-              final DsvgParent parent = state.current!;
-              final DsvgDrawableStyle? parentStyle = parent.matchParent(
+              final parent = state.current!;
+              final parentStyle = parent.matchParent(
                 root: (final a) => a.groupData.style,
                 group: (final a) => a.groupData.style,
               );
-              final DsvgPath dsvgPath = pathFunc();
-              final DsvgDrawableStyleable drawable = DsvgDrawableStyleable(
+              final dsvgPath = pathFunc();
+              final drawable = DsvgDrawableStyleable(
                 styleable: DsvgDrawableShape(
                   sourceLocation: xmlEventToDsvgSourceLocation(
                     event: event,
                   ),
                   id: getAttribute(
-                    state.currentAttributes,
+                    state.currentAttributes.typedGet,
                     'id',
                     def: '',
                   ),
                   path: dsvgPath,
                   style: parseStyle(
                     errorDelegate,
-                    state.currentAttributes,
+                    state.currentAttributes.typedGet,
                     state.definitions,
                     parentStyle,
                     defaultFillColor: const DsvgColor(0xFF000000),
@@ -70,14 +71,14 @@ DsvgParseResult parseSvg({
                   ),
                   transform: parseTransform(
                     getAttribute(
-                      state.currentAttributes,
+                      state.currentAttributes.typedGet,
                       'transform',
                       def: '',
                     ),
-                  )?.storage,
+                  ),
                 ),
               );
-              final bool isIri = state.checkForIri(drawable);
+              final isIri = state.checkForIri(drawable);
               if (!state.inDefs || !isIri) {
                 parent
                     .matchParent(
@@ -87,7 +88,7 @@ DsvgParseResult parseSvg({
                     .add(drawable);
               }
             } else {
-              final SuccessfullyHandled? element = parseElement(
+              final element = parseElement(
                 event: event,
                 errorDelegate: errorDelegate,
                 parserState: state,
@@ -124,13 +125,13 @@ DsvgParseResult parseSvg({
 }
 
 class DsvgParseResult {
+  final DsvgParentRoot root;
+  final DsvgDrawableDefinitionRegistryView definitions;
+
   const DsvgParseResult({
     required final this.root,
     required final this.definitions,
   });
-
-  final DsvgParentRoot root;
-  final DsvgDrawableDefinitionRegistry definitions;
 }
 
 class _SvgParserStateImpl implements SvgParserState {
@@ -169,8 +170,8 @@ class _SvgParserStateImpl implements SvgParserState {
   bool checkForIri(
     final DsvgDrawableStyleable? drawable,
   ) {
-    final String iri = parseUrlIri(
-      attributes: currentAttributes,
+    final iri = parseUrlIri(
+      attributes: currentAttributes.typedGet,
     );
     if (iri != 'url(#)') {
       definitions.addDrawable(iri, drawable!);
@@ -207,9 +208,9 @@ class _SvgParserStateImpl implements SvgParserState {
   }
 
   void _discardSubtree() {
-    final int subtreeStartDepth = depth;
+    final subtreeStartDepth = depth;
     while (eventIterator.moveNext()) {
-      final XmlEvent event = eventIterator.current;
+      final event = eventIterator.current;
       if (event is XmlStartElementEvent && !event.isSelfClosing) {
         depth += 1;
       } else if (event is XmlEndElementEvent) {
@@ -229,17 +230,17 @@ class _SvgParserStateImpl implements SvgParserState {
 
   @override
   Iterable<XmlEvent> readSubtree() sync* {
-    final int subtreeStartDepth = depth;
+    final subtreeStartDepth = depth;
     while (eventIterator.moveNext()) {
-      final XmlEvent event = eventIterator.current;
+      final event = eventIterator.current;
       bool isSelfClosing = false;
       if (event is XmlStartElementEvent) {
-        final Map<String, String> attributeMap = <String, String>{
-          for (final XmlEventAttribute attribute in event.attributes)
+        final attributeMap = <String, String>{
+          for (final attribute in event.attributes)
             attribute.localName: attribute.value.trim(),
         };
-        if (getAttribute(attributeMap, 'display', def: '') == 'none' ||
-            getAttribute(attributeMap, 'visibility', def: '') == 'hidden') {
+        if (getAttribute(attributeMap.typedGet, 'display', def: '') == 'none' ||
+            getAttribute(attributeMap.typedGet, 'visibility', def: '') == 'hidden') {
           print(
             'SVG Warning: Discarding:\n\n  $event\n\n'
             'and any children it has since it is not visible.\n'
@@ -288,12 +289,14 @@ class _DsvgDrawableDefinitionRegistryImpl implements DsvgDrawableDefinitionRegis
   final Map<String, DsvgDrawableStyleable> _drawables;
 
   @override
-  DsvgDrawableStyleable? getDrawable(
-    final String id, {
-    final bool nullOk = false,
-  }) {
-    final DsvgDrawableStyleable? value = _drawables[id];
-    if (value == null && nullOk != true) {
+  Iterable<MapEntry<String, DsvgDrawableStyleable>> get allDrawables => _drawables.entries;
+
+  @override
+  DsvgDrawableStyleable getDrawable(
+    final String id,
+  ) {
+    final value = _drawables[id];
+    if (value == null) {
       throw StateError(
         'Expected to find Drawable with id $id.\nHave ids: ${_drawables.keys}',
       );
@@ -318,7 +321,7 @@ class _DsvgDrawableDefinitionRegistryImpl implements DsvgDrawableDefinitionRegis
   DsvgGradient? getShader(
     final String id,
   ) {
-    final DsvgGradient? srv = _gradients[id];
+    final srv = _gradients[id];
     if (srv != null) {
       return srv;
     } else {

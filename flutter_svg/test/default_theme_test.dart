@@ -2,8 +2,8 @@
 
 import 'package:dart_svg/dsl/dsvg.dart';
 import 'package:flutter/widgets.dart';
-import 'package:flutter_svg/flutter/default_theme.dart';
-import 'package:flutter_svg/flutter/svg.dart';
+import 'package:flutter_svg/src/default_theme.dart';
+import 'package:flutter_svg/src/svg.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -21,7 +21,7 @@ void main() {
   <rect x="0" y="0" width="10em" height="10" fill="currentColor" />
 </svg>''',
       );
-      await tester.pumpWidget(DefaultSvgTheme(
+      await tester.pumpWidget(DefaultDsvgTheme(
         theme: svgTheme,
         child: svgPictureWidget,
       ));
@@ -36,7 +36,7 @@ void main() {
         fontSize: 12.0,
         xHeight: 7.0,
       );
-      await tester.pumpWidget(DefaultSvgTheme(
+      await tester.pumpWidget(DefaultDsvgTheme(
         theme: anotherSvgTheme,
         child: svgPictureWidget,
       ));
@@ -64,7 +64,7 @@ void main() {
           fontSize: 14.0,
         ),
       );
-      await tester.pumpWidget(DefaultSvgTheme(
+      await tester.pumpWidget(DefaultDsvgTheme(
         theme: svgTheme,
         child: svgPictureWidget,
       ));
@@ -90,7 +90,7 @@ void main() {
           fontSize: 12.0,
         ),
       );
-      await tester.pumpWidget(DefaultSvgTheme(
+      await tester.pumpWidget(DefaultDsvgTheme(
         theme: svgTheme,
         child: svgPictureWidget,
       ));
@@ -158,7 +158,7 @@ void main() {
           xHeight: 7.0,
         ),
       );
-      await tester.pumpWidget(DefaultSvgTheme(
+      await tester.pumpWidget(DefaultDsvgTheme(
         theme: svgTheme,
         child: svgPictureWidget,
       ));

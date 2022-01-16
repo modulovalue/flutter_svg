@@ -1,7 +1,7 @@
 import 'package:dart_svg/dsl/dsvg.dart';
 import 'package:flutter/widgets.dart';
-import 'package:flutter_svg/flutter/render_picture.dart';
-import 'package:flutter_svg/flutter/svg.dart';
+import 'package:flutter_svg/src/render_picture.dart';
+import 'package:flutter_svg/src/svg.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:xml/xml.dart';
@@ -69,7 +69,9 @@ void main() {
     );
     expect(pictureCacheSingleton.count, 0);
     final PictureProvider pictureProvider = StringPicture(
-      svgStringDecoderBuilder,
+      svgStringDecoderIsOutsideViewBoxBuilder(
+        false,
+      ),
       svgString,
     )..theme = const DsvgThemeImpl(
         fontSize: 14.0,
@@ -108,7 +110,9 @@ void main() {
     expect(pictureCacheSingleton.count, 0);
     await precachePicture(
       StringPicture(
-        svgStringDecoderBuilder,
+        svgStringDecoderIsOutsideViewBoxBuilder(
+          false,
+        ),
         svgString,
       ),
       null,
@@ -130,7 +134,9 @@ void main() {
     }
 
     final PictureProvider pictureProvider = StringPicture(
-      svgStringDecoderBuilder,
+      svgStringDecoderIsOutsideViewBoxBuilder(
+        false,
+      ),
       svgString,
     )..theme = const DsvgThemeImpl(
         currentColor: DsvgColor(0xFF05290E),

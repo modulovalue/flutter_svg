@@ -4,9 +4,9 @@ import 'dart:typed_data';
 import 'package:dart_svg/dsl/dsvg_theme.dart';
 import 'package:flutter/material.dart';
 
-import 'flutter/render_picture.dart';
-import 'flutter/svg.dart';
-import 'flutter/util.dart';
+import 'src/render_picture.dart';
+import 'src/svg.dart';
+import 'src/util.dart';
 
 /// Creates a widget that displays a [PictureStream] obtained from a [Uint8List].
 ///
@@ -34,7 +34,7 @@ import 'flutter/util.dart';
 /// The `theme` argument, if provided, will override the default theme
 /// used when parsing SVG elements.
 ///
-/// If [excludeFromSemantics] is true, then [semanticLabel] will be ignored.
+/// If [excludeFromSemantics] is true, then semanticLabel will be ignored.
 SvgPicture svgPictureFromMemory(
   final Uint8List bytes, {
   final Key? key,
@@ -68,13 +68,9 @@ SvgPicture svgPictureFromMemory(
       height: height,
       theme: theme,
       pictureProvider: MemoryPicture(
-        () {
-          if (allowDrawingOutsideViewBox == true) {
-            return svgByteDecoderOutsideViewBoxBuilder;
-          } else {
-            return svgByteDecoderBuilder;
-          }
-        }(),
+        svgByteDecoderIsOutsideViewBoxBuilder(
+          !allowDrawingOutsideViewBox,
+        ),
         bytes,
         colorFilter: () {
           if (cacheColorFilterOverride ?? cacheColorFilter) {
@@ -88,8 +84,6 @@ SvgPicture svgPictureFromMemory(
     );
 
 /// Creates a widget that displays a [PictureStream] obtained from a [String].
-///
-/// The [bytes] argument must not be null.
 ///
 /// Either the [width] and [height] arguments should be specified, or the
 /// widget should be placed in a context that sets tight layout constraints.
@@ -113,7 +107,7 @@ SvgPicture svgPictureFromMemory(
 /// The `theme` argument, if provided, will override the default theme
 /// used when parsing SVG elements.
 ///
-/// If [excludeFromSemantics] is true, then [semanticLabel] will be ignored.
+/// If [excludeFromSemantics] is true, then semanticLabel will be ignored.
 SvgPicture svgPictureFromString({
   required final String string,
   final Key? key,
@@ -147,13 +141,9 @@ SvgPicture svgPictureFromString({
       cacheColorFilter: cacheColorFilter,
       theme: theme,
       pictureProvider: StringPicture(
-        () {
-          if (allowDrawingOutsideViewBox == true) {
-            return svgStringDecoderBuilderOutsideViewBoxBuilder;
-          } else {
-            return svgStringDecoderBuilder;
-          }
-        }(),
+        svgStringDecoderIsOutsideViewBoxBuilder(
+          !allowDrawingOutsideViewBox,
+        ),
         string,
         colorFilter: () {
           if (cacheColorFilterOverride ?? cacheColorFilter) {
@@ -199,13 +189,9 @@ SvgPicture svgPictureFromAsset({
       theme: theme,
       cacheColorFilter: cacheColorFilter,
       pictureProvider: ExactAssetPicture(
-        () {
-          if (allowDrawingOutsideViewBox == true) {
-            return svgStringDecoderBuilderOutsideViewBoxBuilder;
-          } else {
-            return svgStringDecoderBuilder;
-          }
-        }(),
+        svgStringDecoderIsOutsideViewBoxBuilder(
+          !allowDrawingOutsideViewBox,
+        ),
         assetName,
         bundle: bundle,
         package: package,
@@ -254,13 +240,9 @@ SvgPicture svgPictureFromNetwork({
       excludeFromSemantics: excludeFromSemantics,
       placeholderBuilder: placeholderBuilder,
       pictureProvider: NetworkPicture(
-        () {
-          if (allowDrawingOutsideViewBox == true) {
-            return svgByteDecoderOutsideViewBoxBuilder;
-          } else {
-            return svgByteDecoderBuilder;
-          }
-        }(),
+        svgByteDecoderIsOutsideViewBoxBuilder(
+          !allowDrawingOutsideViewBox,
+        ),
         url,
         headers: headers,
         colorFilter: () {
@@ -309,13 +291,9 @@ SvgPicture svgPictureFromFile({
       cacheColorFilter: cacheColorFilter,
       theme: theme,
       pictureProvider: FilePicture(
-        () {
-          if (allowDrawingOutsideViewBox == true) {
-            return svgByteDecoderOutsideViewBoxBuilder;
-          } else {
-            return svgByteDecoderBuilder;
-          }
-        }(),
+        svgByteDecoderIsOutsideViewBoxBuilder(
+          !allowDrawingOutsideViewBox,
+        ),
         file,
         colorFilter: () {
           if (cacheColorFilterOverride ?? cacheColorFilter) {

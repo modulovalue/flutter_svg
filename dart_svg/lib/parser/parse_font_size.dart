@@ -8,14 +8,13 @@ double? parseFontSize(
   String? raw, {
   required double fontSize,
   required double xHeight,
-  double? parentValue,
+  final double? parentValue,
 }) {
   if (raw == null || raw == '') {
     return null;
   } else {
-    final ret = parseDoubleWithUnits(
+    final ret = tryParseDoubleWithUnits(
       raw,
-      tryParse: true,
       fontSize: fontSize,
       xHeight: xHeight,
     );

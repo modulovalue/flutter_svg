@@ -27,11 +27,17 @@ T xmlEventReadRange<T>({
       },
     ),
   );
-  return read(offset!, end!);
+  return read(
+    offset!,
+    end!,
+  );
 }
 
 class XmlEventVisitorRange with XmlEventVisitor {
-  final void Function(int offset, int end) reportRange;
+  final void Function(
+    int offset,
+    int end,
+  ) reportRange;
 
   const XmlEventVisitorRange(
     final this.reportRange,

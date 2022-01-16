@@ -12,6 +12,6 @@ double parseDecimalOrPercentage(
       multiplier: multiplier,
     );
   } else {
-    return parseDouble(val)!;
+    return parseDouble(val);
   }
 }

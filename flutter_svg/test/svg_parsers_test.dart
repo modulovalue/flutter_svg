@@ -7,7 +7,7 @@ import 'package:dart_svg/parser/parse_raw_fill_rule.dart';
 import 'package:dart_svg/parser/parse_text_anchor.dart';
 import 'package:dart_svg/parser/parse_transform.dart';
 import 'package:dart_svg/parser/parser.dart';
-import 'package:flutter_svg/error_delegates/error_delegate_flutter_error.dart';
+import 'package:flutter_svg/src/error_delegate_flutter_error.dart';
 import 'package:test/test.dart';
 import 'package:vector_math/vector_math_64.dart';
 
@@ -18,56 +18,90 @@ void main() {
     expected.translate(-0.5214, 0.125, 0);
     expected.translate(0.987, 0.789, 0);
     expect(
-      parseTransform('translate(0.338957,0.010104), translate(-0.5214,0.125),translate(0.987,0.789)'),
+      parseTransform('translate(0.338957,0.010104), translate(-0.5214,0.125),translate(0.987,0.789)')
+          ?.toMatrix4(),
       expected,
     );
     expected = Matrix4.translationValues(0.338957, 0.010104, 0);
     expected.scale(0.869768, 1.000000, 1.0);
     expect(
-      parseTransform('translate(0.338957,0.010104),scale(0.869768,1.000000)'),
+      parseTransform('translate(0.338957,0.010104),scale(0.869768,1.000000)')?.toMatrix4(),
       expected,
     );
   });
   test('SVG Transform parser tests', () {
-    expect(() => parseTransform('invalid'), throwsStateError);
-    expect(() => parseTransform('transformunsupported(0,0)'), throwsStateError);
-    expect(parseTransform('skewX(60)'), Matrix4.skewX(60.0));
-    expect(parseTransform('skewY(60)'), Matrix4.skewY(60.0));
-    expect(parseTransform('translate(10,0.0)'), Matrix4.translationValues(10.0, 0.0, 0.0));
-    expect(parseTransform('skewX(60)'), Matrix4.skewX(60.0));
-    expect(parseTransform('scale(10)'), Matrix4.identity()..scale(10.0, 10.0, 1.0));
-    expect(parseTransform('scale(10, 15)'), Matrix4.identity()..scale(10.0, 15.0, 1.0));
-    expect(parseTransform('rotate(20)'), Matrix4.rotationZ(radians(20.0)));
     expect(
-        parseTransform('rotate(20, 30)'),
-        Matrix4.identity()
-          ..translate(30.0, 30.0)
-          ..rotateZ(radians(20.0))
-          ..translate(-30.0, -30.0));
+      () => parseTransform('invalid'),
+      throwsStateError,
+    );
     expect(
-        parseTransform('rotate(20, 30, 40)'),
-        Matrix4.identity()
-          ..translate(30.0, 40.0)
-          ..rotateZ(radians(20.0))
-          ..translate(-30.0, -40.0));
+      () => parseTransform('transformunsupported(0,0)'),
+      throwsStateError,
+    );
     expect(
-        parseTransform('matrix(1.5, 2.0, 3.0, 4.0, 5.0, 6.0)'),
-        Matrix4.fromList(<double>[
-          1.5, 2.0, 0.0, 0.0, //
-          3.0, 4.0, 0.0, 0.0,
-          0.0, 0.0, 1.0, 0.0,
-          5.0, 6.0, 0.0, 1.0
-        ]));
+      parseTransform('skewX(60)')?.toMatrix4(),
+      Matrix4.skewX(60.0),
+    );
     expect(
-        parseTransform('matrix(1.5, 2.0, 3.0, 4.0, 5.0, 6.0 )'),
-        Matrix4.fromList(<double>[
-          1.5, 2.0, 0.0, 0.0, //
-          3.0, 4.0, 0.0, 0.0,
-          0.0, 0.0, 1.0, 0.0,
-          5.0, 6.0, 0.0, 1.0
-        ]));
+      parseTransform('skewY(60)')?.toMatrix4(),
+      Matrix4.skewY(60.0),
+    );
     expect(
-        parseTransform('rotate(20)\n\tscale(10)'), Matrix4.rotationZ(radians(20.0))..scale(10.0, 10.0, 1.0));
+      parseTransform('translate(10,0.0)')?.toMatrix4(),
+      Matrix4.translationValues(10.0, 0.0, 0.0),
+    );
+    expect(
+      parseTransform('skewX(60)')?.toMatrix4(),
+      Matrix4.skewX(60.0),
+    );
+    expect(
+      parseTransform('scale(10)')?.toMatrix4(),
+      Matrix4.identity()..scale(10.0, 10.0, 1.0),
+    );
+    expect(
+      parseTransform('scale(10, 15)')?.toMatrix4(),
+      Matrix4.identity()..scale(10.0, 15.0, 1.0),
+    );
+    expect(
+      parseTransform('rotate(20)')?.toMatrix4(),
+      Matrix4.rotationZ(radians(20.0)),
+    );
+    expect(
+      parseTransform('rotate(20, 30)')?.toMatrix4(),
+      Matrix4.identity()
+        ..translate(30.0, 30.0)
+        ..rotateZ(radians(20.0))
+        ..translate(-30.0, -30.0),
+    );
+    expect(
+      parseTransform('rotate(20, 30, 40)')?.toMatrix4(),
+      Matrix4.identity()
+        ..translate(30.0, 40.0)
+        ..rotateZ(radians(20.0))
+        ..translate(-30.0, -40.0),
+    );
+    expect(
+      parseTransform('matrix(1.5, 2.0, 3.0, 4.0, 5.0, 6.0)')?.toMatrix4(),
+      Matrix4.fromList(<double>[
+        1.5, 2.0, 0.0, 0.0, //
+        3.0, 4.0, 0.0, 0.0,
+        0.0, 0.0, 1.0, 0.0,
+        5.0, 6.0, 0.0, 1.0
+      ]),
+    );
+    expect(
+      parseTransform('matrix(1.5, 2.0, 3.0, 4.0, 5.0, 6.0 )')?.toMatrix4(),
+      Matrix4.fromList(<double>[
+        1.5, 2.0, 0.0, 0.0, //
+        3.0, 4.0, 0.0, 0.0,
+        0.0, 0.0, 1.0, 0.0,
+        5.0, 6.0, 0.0, 1.0
+      ]),
+    );
+    expect(
+      parseTransform('rotate(20)\n\tscale(10)')?.toMatrix4(),
+      Matrix4.rotationZ(radians(20.0))..scale(10.0, 10.0, 1.0),
+    );
   });
   test('FillRule tests', () {
     expect(parseRawFillRule(''), DsvgPathFillType.nonZero);
@@ -741,7 +775,7 @@ void main() {
         isNotNull,
       );
       expect(
-        circle!.groupData.transform,
+        circle!.groupData.transform?.toMatrix4().storage,
         equals(
           (Matrix4.identity()..translate(expectedX, expectedY)).storage,
         ),
@@ -769,7 +803,7 @@ void main() {
       );
       const DsvgOffset expectedOffset = DsvgOffset(x: fontSize * 2, y: fontSize * 4);
       expect(text, isNotNull);
-      expect(text!.offset, equals(expectedOffset));
+      expect(text!.positionOffset, equals(expectedOffset));
     });
     test('radialGradient (cx, cy, r, fx, fy)', () async {
       const String svgStr = '''
@@ -908,7 +942,7 @@ BAAO9TXL0Y4OHwAAAABJRU5ErkJggg==" x="1em" y="0.5em" width="2em" height="1.5em" /
       const double expectedY = xHeight * 4;
       expect(circle, isNotNull);
       expect(
-        circle!.groupData.transform,
+        circle!.groupData.transform?.toMatrix4().storage,
         equals(
           (Matrix4.identity()..translate(expectedX, expectedY)).storage,
         ),
@@ -938,7 +972,7 @@ BAAO9TXL0Y4OHwAAAABJRU5ErkJggg==" x="1em" y="0.5em" width="2em" height="1.5em" /
       );
       const DsvgOffset expectedOffset = DsvgOffset(x: xHeight * 2, y: xHeight * 4);
       expect(text, isNotNull);
-      expect(text!.offset, equals(expectedOffset));
+      expect(text!.positionOffset, equals(expectedOffset));
     });
     test('radialGradient (cx, cy, r, fx, fy)', () async {
       const String svgStr = '''

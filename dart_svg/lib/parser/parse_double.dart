@@ -4,32 +4,29 @@
 /// which is stripped off when parsed to a `double`.
 ///
 /// Passing `null` will return `null`.
-double? parseDouble(
-  String? rawDouble, {
-  final bool tryParse = false,
-}) {
+double parseDouble(
+  final String rawDouble,
+) {
+  final _rawDouble = _trimUnits(rawDouble);
+  return double.parse(_rawDouble);
+}
+
+double? tryParseDouble(
+  final String? rawDouble,
+) {
   if (rawDouble == null) {
     return null;
   } else {
-    // ignore: parameter_assignments
-    rawDouble = rawDouble
-        .replaceFirst(
-          'em',
-          '',
-        )
-        .replaceFirst(
-          'ex',
-          '',
-        )
-        .replaceFirst(
-          'px',
-          '',
-        )
-        .trim();
-    if (tryParse) {
-      return double.tryParse(rawDouble);
-    } else {
-      return double.parse(rawDouble);
-    }
+    final _rawDouble = _trimUnits(rawDouble);
+    return double.tryParse(_rawDouble);
   }
 }
+
+String _trimUnits(
+  final String value,
+) =>
+    value //
+        .replaceFirst('em', '')
+        .replaceFirst('ex', '')
+        .replaceFirst('px', '')
+        .trim();

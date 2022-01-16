@@ -1,8 +1,7 @@
-import 'dart:typed_data';
-
 import 'package:meta/meta.dart';
 
 import 'dsvg.dart';
+import 'dsvg_affine_matrix.dart';
 
 /// Basic information describing a gradient.
 abstract class DsvgGradient {
@@ -21,7 +20,7 @@ abstract class DsvgGradient {
   DsvgGradientUnitMode get unitMode;
 
   /// The transform to apply to this gradient.
-  Float64List? get transform;
+  DsvgAffineMatrix? get transform;
 
   R match<R>({
     required final R Function(DsvgGradientRadial) radialGradient,
@@ -51,7 +50,7 @@ class DsvgGradientLinear implements DsvgGradient {
   @override
   final DsvgGradientUnitMode unitMode;
   @override
-  final Float64List? transform;
+  final DsvgAffineMatrix? transform;
   final DsvgOffset gradientStartOffset;
   final DsvgOffset gradientEndOffset;
 
@@ -88,7 +87,7 @@ class DsvgGradientRadial implements DsvgGradient {
   @override
   final DsvgGradientUnitMode unitMode;
   @override
-  final Float64List? transform;
+  final DsvgAffineMatrix? transform;
   final double centerX;
   final double centerY;
   final double? radius;

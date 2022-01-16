@@ -68,18 +68,30 @@ abstract class SvgErrorDelegate {
   );
 }
 
-/// Contains reusable drawing elements that can be referenced by a String ID.
-abstract class DsvgDrawableDefinitionRegistry {
-  /// Attempt to lookup a [DsvgDrawable] by [id].
-  DsvgDrawableStyleable? getDrawable(
-    final String id, {
-    final bool nullOk,
-  });
-
+abstract class DsvgDrawableDefinitionRegistry implements DsvgDrawableDefinitionRegistryView {
   /// Add a [DsvgDrawable] that can later be referred to by [id].
   void addDrawable(
     final String id,
     final DsvgDrawableStyleable drawable,
+  );
+
+  /// Add a [DsvgGradient] to the pre-defined collection by [id].
+  void addGradient(
+    final String id,
+    final DsvgGradient gradient,
+  );
+
+  /// Add a [List<Path>] of clip paths by [id].
+  void addClipPath(
+    final String id,
+    final List<DsvgPath> paths,
+  );
+}
+
+abstract class DsvgDrawableDefinitionRegistryView {
+  /// Attempt to lookup a [DsvgDrawable] by [id].
+  DsvgDrawableStyleable getDrawable(
+    final String id,
   );
 
   /// Attempt to lookup a pre-defined Shader by [id].
@@ -92,20 +104,11 @@ abstract class DsvgDrawableDefinitionRegistry {
     final String id,
   );
 
-  /// Add a [DsvgGradient] to the pre-defined collection by [id].
-  void addGradient(
-    final String id,
-    final DsvgGradient gradient,
-  );
-
   /// Get a [List<Path>] of clip paths by [id].
   List<DsvgPath>? getClipPath(
     final String id,
   );
 
-  /// Add a [List<Path>] of clip paths by [id].
-  void addClipPath(
-    final String id,
-    final List<DsvgPath> paths,
-  );
+  /// Returns all known drawables.
+  Iterable<MapEntry<String, DsvgDrawableStyleable>> get allDrawables;
 }

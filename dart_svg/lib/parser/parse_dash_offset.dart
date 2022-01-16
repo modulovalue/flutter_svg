@@ -6,7 +6,7 @@ import 'parse_percentage.dart';
 
 /// Parses a @stroke-dashoffset into a [DsvgDashOffset].
 DsvgDashOffset? parseDashOffset(
-  final Map<String, String> attributes, {
+  final String? Function(String) attributes, {
   required double fontSize,
   required double xHeight,
 }) {
@@ -29,7 +29,7 @@ DsvgDashOffset? parseDashOffset(
         rawDashOffset,
         fontSize: fontSize,
         xHeight: xHeight,
-      )!,
+      ),
     );
   }
 }

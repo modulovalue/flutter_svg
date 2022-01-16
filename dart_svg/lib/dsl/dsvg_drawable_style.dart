@@ -2,11 +2,11 @@ import 'package:meta/meta.dart';
 
 import 'dsvg_blend_mode.dart';
 import 'dsvg_dash_offset.dart';
-import 'dsvg_drawable.dart';
 import 'dsvg_paint.dart';
 import 'dsvg_path.dart';
 import 'dsvg_path_fill_type.dart';
 import 'dsvg_text_style.dart';
+import 'hierarchy/dsvg_drawable.dart';
 
 @immutable
 class DsvgDrawableStyle {

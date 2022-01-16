@@ -1,12 +1,11 @@
-import 'dart:typed_data';
-
+import '../dsvg_affine_matrix.dart';
+import '../dsvg_drawable_style.dart';
+import '../dsvg_offset.dart';
+import '../dsvg_path.dart';
+import '../dsvg_size.dart';
+import '../dsvg_source_location.dart';
 import 'dsvg_drawable.dart';
-import 'dsvg_drawable_style.dart';
-import 'dsvg_offset.dart';
 import 'dsvg_parent.dart';
-import 'dsvg_path.dart';
-import 'dsvg_size.dart';
-import 'dsvg_source_location.dart';
 
 abstract class DsvgStyleable {
   Z matchStyleable<Z>({
@@ -16,7 +15,6 @@ abstract class DsvgStyleable {
   });
 }
 
-/// A raster image (e.g. PNG, JPEG, or GIF) embedded in the drawable.
 class DsvgDrawableRasterImage implements DsvgStyleable {
   const DsvgDrawableRasterImage({
     required final this.id,
@@ -31,7 +29,7 @@ class DsvgDrawableRasterImage implements DsvgStyleable {
   final String imageHref;
   final DsvgOffset topLeftOffset;
   final DsvgSize? targetSize;
-  final Float64List? transform;
+  final DsvgAffineMatrix? transform;
   final DsvgDrawableStyle style;
 
   @override
@@ -43,7 +41,6 @@ class DsvgDrawableRasterImage implements DsvgStyleable {
       rasterImage(this);
 }
 
-/// Represents a drawing element that will be rendered to the canvas.
 class DsvgDrawableShape implements DsvgStyleable {
   const DsvgDrawableShape({
     required final this.id,
@@ -54,7 +51,7 @@ class DsvgDrawableShape implements DsvgStyleable {
   });
 
   final String? id;
-  final Float64List? transform;
+  final DsvgAffineMatrix? transform;
   final DsvgDrawableStyle style;
   final DsvgPath path;
   final DsvgSourceLocation? sourceLocation;
@@ -68,7 +65,6 @@ class DsvgDrawableShape implements DsvgStyleable {
       shape(this);
 }
 
-/// A [DsvgDrawable] that can have child [DsvgDrawable] and [DsvgDrawableStyle].
 class DsvgDrawableParent<T extends DsvgParent> implements DsvgStyleable {
   final T parent;
 
@@ -93,7 +89,7 @@ T mergeStyleable<T extends DsvgStyleable>(
     styleable.matchStyleable(
       parent: (final a) => a.parent.matchParent(
         root: (final a) {
-          final DsvgDrawableStyle mergedStyle = mergeAndBlendDrawableStyle(
+          final mergedStyle = mergeAndBlendDrawableStyle(
             a.groupData.style,
             fill: newStyle.fill,
             stroke: newStyle.stroke,
@@ -104,8 +100,8 @@ T mergeStyleable<T extends DsvgStyleable>(
             pathFillType: newStyle.pathFillType,
             textStyle: newStyle.textStyle,
           );
-          final List<DsvgDrawable> mergedChildren = a.groupData.children.map<DsvgDrawable>(
-            (final DsvgDrawable child) {
+          final mergedChildren = a.groupData.children.map<DsvgDrawable>(
+            (final child) {
               if (child is DsvgDrawableStyleable) {
                 return DsvgDrawableStyleable(
                   styleable: mergeStyleable<DsvgStyleable>(
@@ -133,7 +129,7 @@ T mergeStyleable<T extends DsvgStyleable>(
           ) as T;
         },
         group: (final a) {
-          final DsvgDrawableStyle mergedStyle = mergeAndBlendDrawableStyle(
+          final mergedStyle = mergeAndBlendDrawableStyle(
             a.groupData.style,
             fill: newStyle.fill,
             stroke: newStyle.stroke,
@@ -143,9 +139,9 @@ T mergeStyleable<T extends DsvgStyleable>(
             pathFillType: newStyle.pathFillType,
             textStyle: newStyle.textStyle,
           );
-          final List<DsvgDrawable> mergedChildren = a.groupData.children
+          final mergedChildren = a.groupData.children
               .map<DsvgDrawable>(
-                (final DsvgDrawable child) => child.match(
+                (final child) => child.match(
                   text: (final a) => a,
                   styleable: (final a) => DsvgDrawableStyleable(
                     styleable: mergeStyleable(

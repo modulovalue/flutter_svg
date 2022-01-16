@@ -4,7 +4,7 @@ import 'dart:ui';
 
 import 'package:dart_svg/dsl/dsvg.dart';
 import 'package:dart_svg/parser/parser_state.dart';
-import 'package:flutter_svg/flutter/render_picture.dart';
+import 'package:flutter_svg/src/render_picture.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:test/test.dart';
 
@@ -27,7 +27,7 @@ void main() {
         const DsvgColor color = DsvgColor(0xFFB0E3BE);
         final NetworkPicture networkPicture = NetworkPicture(decoderBuilder, 'url')
           ..theme = const DsvgThemeImpl(fontSize: 14.0);
-        final PictureInfoDecoder<Uint8List>? decoder = networkPicture.decoder;
+        final PictureInfoDecoder<Uint8List> decoder = networkPicture.decoder;
         const DsvgTheme newTheme = DsvgThemeImpl(
           currentColor: color,
           fontSize: 14.0,
@@ -42,7 +42,7 @@ void main() {
         const DsvgColor color = DsvgColor(0xFFB0E3BE);
         final FilePicture filePicture = FilePicture(decoderBuilder, MockFile())
           ..theme = const DsvgThemeImpl(fontSize: 14.0);
-        final PictureInfoDecoder<Uint8List>? decoder = filePicture.decoder;
+        final PictureInfoDecoder<Uint8List> decoder = filePicture.decoder;
         const DsvgTheme newTheme = DsvgThemeImpl(
           currentColor: color,
           fontSize: 14.0,
@@ -57,7 +57,7 @@ void main() {
         const DsvgColor color = DsvgColor(0xFFB0E3BE);
         final MemoryPicture memoryPicture = MemoryPicture(decoderBuilder, Uint8List(0))
           ..theme = const DsvgThemeImpl(fontSize: 14.0);
-        final PictureInfoDecoder<Uint8List>? decoder = memoryPicture.decoder;
+        final PictureInfoDecoder<Uint8List> decoder = memoryPicture.decoder;
         const DsvgTheme newTheme = DsvgThemeImpl(
           currentColor: color,
           fontSize: 14.0,
@@ -72,7 +72,7 @@ void main() {
         const DsvgColor color = DsvgColor(0xFFB0E3BE);
         final StringPicture stringPicture = StringPicture(decoderBuilder, '')
           ..theme = const DsvgThemeImpl(fontSize: 14.0);
-        final PictureInfoDecoder<String>? decoder = stringPicture.decoder;
+        final PictureInfoDecoder<String> decoder = stringPicture.decoder;
         const DsvgTheme newTheme = DsvgThemeImpl(
           currentColor: color,
           fontSize: 14.0,
@@ -87,7 +87,7 @@ void main() {
         const DsvgColor color = DsvgColor(0xFFB0E3BE);
         final ExactAssetPicture exactAssetPicture = ExactAssetPicture(decoderBuilder, '')
           ..theme = const DsvgThemeImpl(fontSize: 14.0);
-        final PictureInfoDecoder<String>? decoder = exactAssetPicture.decoder;
+        final PictureInfoDecoder<String> decoder = exactAssetPicture.decoder;
         const DsvgTheme newTheme = DsvgThemeImpl(
           currentColor: color,
           fontSize: 14.0,

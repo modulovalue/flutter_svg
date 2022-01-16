@@ -2,6 +2,14 @@
 
 import 'package:meta/meta.dart';
 
+class DsvgOffsetZero extends DsvgOffset {
+  const DsvgOffsetZero()
+      : super(
+          x: 0.0,
+          y: 0.0,
+        );
+}
+
 @immutable
 class DsvgOffset {
   final double x;

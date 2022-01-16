@@ -36,7 +36,7 @@ DsvgColor? svgColorStringToColor(
           .split(',')
           .map((String rawColor) => rawColor.trim())
           .toList();
-      final double opacity = parseDouble(rawColorElements.removeLast())!;
+      final double opacity = parseDouble(rawColorElements.removeLast());
       final List<int> rgb = rawColorElements.map((String rawColor) => int.parse(rawColor)).toList();
       return DsvgColor.fromRGBO(rgb[0], rgb[1], rgb[2], opacity);
     }
@@ -51,7 +51,7 @@ DsvgColor? svgColorStringToColor(
           rawColor = rawColor.substring(0, rawColor.length - 1);
         }
         if (rawColor.contains('.')) {
-          return (parseDouble(rawColor)! * 2.55).round();
+          return (parseDouble(rawColor) * 2.55).round();
         } else {
           return int.parse(rawColor);
         }
@@ -104,7 +104,7 @@ DsvgColor? svgColorStringToColor(
           rawColor = rawColor.trim();
           if (rawColor.endsWith('%')) {
             rawColor = rawColor.substring(0, rawColor.length - 1);
-            return (parseDouble(rawColor)! * 2.55).round();
+            return (parseDouble(rawColor) * 2.55).round();
           }
           return int.parse(rawColor);
         }).toList();

@@ -1,12 +1,11 @@
-import 'package:vector_math/vector_math_64.dart';
-
 import '../dsl/dsvg_path_fill_type.dart';
+import 'dsvg_affine_matrix.dart';
 
 abstract class DsvgPath {}
 
 class DsvgPathTransformed implements DsvgPath {
   final DsvgPath path;
-  final Matrix4 transform;
+  final DsvgAffineMatrix transform;
 
   const DsvgPathTransformed({
     required final this.path,

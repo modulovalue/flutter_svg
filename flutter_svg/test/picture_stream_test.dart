@@ -1,6 +1,6 @@
 import 'dart:ui';
 
-import 'package:flutter_svg/flutter/render_picture.dart';
+import 'package:flutter_svg/src/render_picture.dart';
 import 'package:test/test.dart';
 
 void main() {

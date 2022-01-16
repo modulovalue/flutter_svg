@@ -21,7 +21,7 @@ import 'parse_text_decoration_style.dart';
 /// Remember that @style attribute takes precedence.
 DsvgDrawableStyle parseStyle(
   final SvgErrorDelegate errorDelegate,
-  final Map<String, String> attributes,
+  final String? Function(String) attributes,
   final DsvgDrawableDefinitionRegistry? definitions,
   final DsvgDrawableStyle? parentStyle, {
   required final double fontSize,
@@ -70,13 +70,13 @@ DsvgDrawableStyle parseStyle(
         }(),
       ),
       groupOpacity: () {
-        final String? rawOpacity = getAttribute(
+        final rawOpacity = getAttribute(
           attributes,
           'opacity',
           def: null,
         );
         if (rawOpacity != null) {
-          return parseDouble(rawOpacity)!.clamp(0.0, 1.0).toDouble();
+          return parseDouble(rawOpacity).clamp(0.0, 1.0).toDouble();
         } else {
           return null;
         }
@@ -94,7 +94,7 @@ DsvgDrawableStyle parseStyle(
         }
       }(),
       clipPath: () {
-        final String? rawClipAttribute = getAttribute(
+        final rawClipAttribute = getAttribute(
           attributes,
           'clip-path',
           def: '',
@@ -141,7 +141,7 @@ DsvgDrawableStyle parseStyle(
         ),
       ),
       blendMode: () {
-        final String blendMode = getAttribute(
+        final blendMode = getAttribute(
           attributes,
           'mix-blend-mode',
           def: '',

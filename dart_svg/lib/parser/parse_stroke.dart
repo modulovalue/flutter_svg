@@ -9,7 +9,7 @@ import 'parse_double_with_units.dart';
 
 /// Parses a @stroke attribute into a Paint.
 DsvgPaint? parseStroke(
-  final Map<String, String> attributes,
+  final String? Function(String) attributes,
   final DsvgDrawableDefinitionRegistry? definitions,
   final DsvgPaint? parentStroke,
   final DsvgColor? currentColor,
@@ -24,9 +24,9 @@ DsvgPaint? parseStroke(
     def: '1.0',
   );
   final String? rawOpacity = getAttribute(attributes, 'opacity', def: '');
-  double opacity = parseDouble(rawStrokeOpacity)!.clamp(0.0, 1.0).toDouble();
+  double opacity = parseDouble(rawStrokeOpacity!).clamp(0.0, 1.0).toDouble();
   if (rawOpacity != '') {
-    opacity *= parseDouble(rawOpacity)!.clamp(0.0, 1.0);
+    opacity *= parseDouble(rawOpacity!).clamp(0.0, 1.0);
   }
   if (rawStroke.startsWith('url')) {
     return getDefinitionPaint(
@@ -82,18 +82,22 @@ DsvgPaint? parseStroke(
         if (rawMiterLimit == '') {
           return parentStroke?.strokeMiterLimit ?? 4.0;
         } else {
-          return parseDouble(rawMiterLimit);
+          return parseDouble(rawMiterLimit!);
         }
       }(),
       strokeWidth: () {
         if (rawStrokeWidth == '') {
           return parentStroke?.strokeWidth ?? 1.0;
         } else {
-          return parseDoubleWithUnits(
-            rawStrokeWidth,
-            fontSize: fontSize,
-            xHeight: xHeight,
-          );
+          if (rawStrokeWidth == null) {
+            return null;
+          } else {
+            return parseDoubleWithUnits(
+              rawStrokeWidth,
+              fontSize: fontSize,
+              xHeight: xHeight,
+            );
+          }
         }
       }(),
     );

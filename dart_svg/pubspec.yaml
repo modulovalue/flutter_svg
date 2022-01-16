@@ -13,4 +13,5 @@ dependencies:
 
 dev_dependencies:
   extra_pedantic: ^1.5.0
-  vector_math: 
+  test:
+  vector_math:

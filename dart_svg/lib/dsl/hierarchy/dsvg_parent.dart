@@ -1,10 +1,9 @@
-import 'dart:typed_data';
-
-import 'dsvg_color.dart';
+import '../dsvg_affine_matrix.dart';
+import '../dsvg_color.dart';
+import '../dsvg_drawable_style.dart';
+import '../dsvg_source_location.dart';
+import '../dsvg_viewport.dart';
 import 'dsvg_drawable.dart';
-import 'dsvg_drawable_style.dart';
-import 'dsvg_source_location.dart';
-import 'dsvg_viewport.dart';
 
 abstract class DsvgParent {
   Z matchParent<Z>({
@@ -13,7 +12,6 @@ abstract class DsvgParent {
   });
 }
 
-/// The root element of a drawable.
 class DsvgParentRoot implements DsvgParent {
   const DsvgParentRoot({
     required final this.id,
@@ -23,12 +21,9 @@ class DsvgParentRoot implements DsvgParent {
   });
 
   final String? id;
-  /// The expected coordinates used by child paths for drawing.
   final DsvgViewport viewport;
   final DsvgSourceLocation? sourceLocation;
   final DsvgGroupData groupData;
-
-  bool get hasDrawableContent => groupData.children.isNotEmpty == true && !viewport.viewBox.isEmpty;
 
   @override
   Z matchParent<Z>({
@@ -38,8 +33,6 @@ class DsvgParentRoot implements DsvgParent {
       root(this);
 }
 
-/// Represents a group of drawing elements that may
-/// share a common `transform`, `stroke`, or `fill`.
 class DsvgParentGroup implements DsvgParent {
   const DsvgParentGroup({
     required final this.id,
@@ -51,8 +44,6 @@ class DsvgParentGroup implements DsvgParent {
   final DsvgSourceLocation? sourceLocation;
   final DsvgGroupData groupData;
 
-  bool get hasDrawableContent => groupData.children.isNotEmpty;
-
   @override
   Z matchParent<Z>({
     required final Z Function(DsvgParentRoot) root,
@@ -63,8 +54,8 @@ class DsvgParentGroup implements DsvgParent {
 
 class DsvgGroupData {
   final List<DsvgDrawable> children;
-  final DsvgDrawableStyle? style;
-  final Float64List? transform;
+  final DsvgDrawableStyle style;
+  final DsvgAffineMatrix? transform;
 
   /// The default color used to provide a potential indirect color value
   /// for the `fill`, `stroke` and `stop-color` of descendant elements.

@@ -1,4 +1,5 @@
 import 'package:dart_svg/dsl/dsvg.dart';
+import 'package:dart_svg/error_delegate_throw.dart';
 import 'package:dart_svg/parser/parse_attribute.dart';
 import 'package:dart_svg/parser/parse_dash_offset.dart';
 import 'package:dart_svg/parser/parse_font_style.dart';
@@ -9,12 +10,12 @@ import 'package:dart_svg/parser/parse_text_decoration.dart';
 import 'package:dart_svg/parser/parse_text_decoration_style.dart';
 import 'package:dart_svg/parser/parse_tile_mode.dart';
 import 'package:dart_svg/parser/parse_viewbox.dart';
-import 'package:flutter_svg/error_delegates/error_delegate_flutter_error.dart';
 import 'package:path_drawing/path_drawing.dart';
 import 'package:test/test.dart';
 import 'package:xml/xml_events.dart';
 
 void main() {
+  const errorDelegate = SvgErrorDelegateThrowsImpl(key: null,);
   test('Xlink href tests', () {
     /// The namespace for xlink from the SVG 1.1 spec.
     const String kXlinkNamespace = 'http://www.w3.org/1999/xlink';
@@ -23,14 +24,14 @@ void main() {
     final XmlStartElementEvent elXlink = parseEvents('<test xmlns:xlink="$kXlinkNamespace" '
             'xlink:href="http://localhost" />')
         .first as XmlStartElementEvent;
-    expect(getHrefAttribute(el.attributes.toAttributeMap()), 'http://localhost');
-    expect(getHrefAttribute(elXlink.attributes.toAttributeMap()), 'http://localhost');
+    expect(getHrefAttribute(el.attributes.toAttributeMap().typedGet), 'http://localhost');
+    expect(getHrefAttribute(elXlink.attributes.toAttributeMap().typedGet), 'http://localhost');
   });
   test('Attribute and style tests', () {
     final XmlStartElementEvent el = parseEvents('<test stroke="#fff" fill="#eee" stroke-dashpattern="1 2" '
             'style="stroke-opacity:1;fill-opacity:.23" />')
         .first as XmlStartElementEvent;
-    final Map<String, String> attributes = el.attributes.toAttributeMap();
+    final attributes = el.attributes.toAttributeMap().typedGet;
     expect(getAttribute(attributes, 'stroke', def: ''), '#fff');
     expect(getAttribute(attributes, 'fill', def: ''), '#eee');
     expect(getAttribute(attributes, 'stroke-dashpattern', def: ''), '1 2');
@@ -67,107 +68,79 @@ void main() {
         parseEvents('<svg viewBox="42 56 100 100" />').first as XmlStartElementEvent;
     final XmlStartElementEvent svgWithNoSizeInfo = parseEvents('<svg />').first as XmlStartElementEvent;
     expect(
-        parseViewBox(
-          svgWithViewBoxAndWidthHeight.attributes.toAttributeMap(),
+        parseViewBoxAndDimensions(
+          svgWithViewBoxAndWidthHeight.attributes.toAttributeMap().typedGet,
           fontSize: 14.0,
           xHeight: 7.0,
-          errorDelegate: const SvgErrorDelegateFlutterWarnImpl(
-            key: null,
-          ),
+          errorDelegate: errorDelegate,
         )!
             .size,
         const DsvgSize(w: 50, h: 50));
     expect(
-      parseViewBox(
-        svgWithViewBox.attributes.toAttributeMap(),
+      parseViewBoxAndDimensions(
+        svgWithViewBox.attributes.toAttributeMap().typedGet,
         fontSize: 14.0,
         xHeight: 7.0,
-        errorDelegate: const SvgErrorDelegateFlutterWarnImpl(
-          key: null,
-        ),
+        errorDelegate: errorDelegate,
       )!
           .viewBoxRect,
       rect,
     );
     expect(
-      parseViewBox(
-        svgWithViewBox.attributes.toAttributeMap(),
+      parseViewBoxAndDimensions(
+        svgWithViewBox.attributes.toAttributeMap().typedGet,
         fontSize: 14.0,
         xHeight: 7.0,
-        errorDelegate: const SvgErrorDelegateFlutterWarnImpl(
-          key: null,
-        ),
+        errorDelegate: errorDelegate,
       )!
           .viewBoxOffset,
       const DsvgOffset(x: 0.0, y: 0.0),
     );
     expect(
-      parseViewBox(
-        svgWithViewBoxAndWidthHeight.attributes.toAttributeMap(),
+      parseViewBoxAndDimensions(
+        svgWithViewBoxAndWidthHeight.attributes.toAttributeMap().typedGet,
         fontSize: 14.0,
         xHeight: 7.0,
-        errorDelegate: const SvgErrorDelegateFlutterWarnImpl(
-          key: null,
-        ),
+        errorDelegate: errorDelegate,
       )!
           .viewBoxRect,
       rect,
     );
     expect(
-      parseViewBox(
-        svgWithWidthHeight.attributes.toAttributeMap(),
+      parseViewBoxAndDimensions(
+        svgWithWidthHeight.attributes.toAttributeMap().typedGet,
         fontSize: 14.0,
         xHeight: 7.0,
-        errorDelegate: const SvgErrorDelegateFlutterWarnImpl(
-          key: null,
-        ),
+        errorDelegate: errorDelegate,
       )!
           .viewBoxRect,
       rect,
     );
     expect(
-      parseViewBox(
-        svgWithNoSizeInfo.attributes.toAttributeMap(),
+      () => parseViewBoxAndDimensions(
+        svgWithNoSizeInfo.attributes.toAttributeMap().typedGet,
         fontSize: 14.0,
         xHeight: 7.0,
-        nullOk: true,
-        errorDelegate: const SvgErrorDelegateFlutterWarnImpl(
-          key: null,
-        ),
-      ),
-      null,
-    );
-    expect(
-      () => parseViewBox(
-        svgWithNoSizeInfo.attributes.toAttributeMap(),
-        fontSize: 14.0,
-        xHeight: 7.0,
-        errorDelegate: const SvgErrorDelegateFlutterWarnImpl(
-          key: null,
-        ),
+        errorDelegate: errorDelegate,
       ),
       throwsStateError,
     );
     expect(
-      parseViewBox(
-        svgWithViewBoxMinXMinY.attributes.toAttributeMap(),
+      parseViewBoxAndDimensions(
+        svgWithViewBoxMinXMinY.attributes.toAttributeMap().typedGet,
         fontSize: 14.0,
         xHeight: 7.0,
-        errorDelegate: const SvgErrorDelegateFlutterWarnImpl(
-          key: null,
-        ),
+        errorDelegate: errorDelegate,
       )!
           .viewBoxRect,
       rect,
     );
     expect(
-      parseViewBox(
-        svgWithViewBoxMinXMinY.attributes.toAttributeMap(),
+      parseViewBoxAndDimensions(
+        svgWithViewBoxMinXMinY.attributes.toAttributeMap().typedGet,
         fontSize: 14.0,
         xHeight: 7.0,
-        errorDelegate: const SvgErrorDelegateFlutterWarnImpl(
-          key: null,
-        ),
+        errorDelegate: errorDelegate,
       )!
           .viewBoxOffset,
       const DsvgOffset(x: -42.0, y: -56.0),
@@ -183,11 +156,11 @@ void main() {
     final XmlStartElementEvent invalid =
         parseEvents('<linearGradient spreadMethod="invalid" />').first as XmlStartElementEvent;
     final XmlStartElementEvent none = parseEvents('<linearGradient />').first as XmlStartElementEvent;
-    expect(parseTileMode(pad.attributes.toAttributeMap()), DsvgTileMode.clamp);
-    expect(parseTileMode(invalid.attributes.toAttributeMap()), DsvgTileMode.clamp);
-    expect(parseTileMode(none.attributes.toAttributeMap()), DsvgTileMode.clamp);
-    expect(parseTileMode(reflect.attributes.toAttributeMap()), DsvgTileMode.mirror);
-    expect(parseTileMode(repeat.attributes.toAttributeMap()), DsvgTileMode.repeated);
+    expect(parseTileMode(pad.attributes.toAttributeMap().typedGet), DsvgTileMode.clamp);
+    expect(parseTileMode(invalid.attributes.toAttributeMap().typedGet), DsvgTileMode.clamp);
+    expect(parseTileMode(none.attributes.toAttributeMap().typedGet), DsvgTileMode.clamp);
+    expect(parseTileMode(reflect.attributes.toAttributeMap().typedGet), DsvgTileMode.mirror);
+    expect(parseTileMode(repeat.attributes.toAttributeMap().typedGet), DsvgTileMode.repeated);
   });
   test('@stroke-dashoffset tests', () {
     final XmlStartElementEvent abs =
@@ -196,7 +169,7 @@ void main() {
         parseEvents('<stroke stroke-dashoffset="20%" />').first as XmlStartElementEvent;
     expect(
       parseDashOffset(
-        abs.attributes.toAttributeMap(),
+        abs.attributes.toAttributeMap().typedGet,
         fontSize: 14.0,
         xHeight: 7.0,
       ),
@@ -204,7 +177,7 @@ void main() {
     );
     expect(
       parseDashOffset(
-        pct.attributes.toAttributeMap(),
+        pct.attributes.toAttributeMap().typedGet,
         fontSize: 14.0,
         xHeight: 7.0,
       ),
@@ -255,8 +228,8 @@ void main() {
       final XmlStartElementEvent svg =
           parseEvents('<svg stroke="currentColor" />').first as XmlStartElementEvent;
       final DsvgDrawableStyle svgStyle = parseStyle(
-        const SvgErrorDelegateFlutterWarnImpl(key: 'test'),
-        svg.attributes.toAttributeMap(),
+        errorDelegate,
+        svg.attributes.toAttributeMap().typedGet,
         null,
         null,
         currentColor: currentColor,
@@ -273,8 +246,8 @@ void main() {
       final XmlStartElementEvent svg =
           parseEvents('<svg fill="currentColor" />').first as XmlStartElementEvent;
       final DsvgDrawableStyle svgStyle = parseStyle(
-        const SvgErrorDelegateFlutterWarnImpl(key: 'test'),
-        svg.attributes.toAttributeMap(),
+        errorDelegate,
+        svg.attributes.toAttributeMap().typedGet,
         null,
         null,
         currentColor: currentColor,
@@ -292,10 +265,8 @@ void main() {
             parseEvents('<circle stroke="green" stroke-width="2em" />').first as XmlStartElementEvent;
         const double fontSize = 26.0;
         final DsvgDrawableStyle svgStyle = parseStyle(
-          const SvgErrorDelegateFlutterWarnImpl(
-            key: 'test',
-          ),
-          svg.attributes.toAttributeMap(),
+          errorDelegate,
+          svg.attributes.toAttributeMap().typedGet,
           null,
           null,
           fontSize: fontSize,
@@ -312,8 +283,8 @@ void main() {
         ).first as XmlStartElementEvent;
         const double fontSize = 26.0;
         final DsvgDrawableStyle svgStyle = parseStyle(
-          const SvgErrorDelegateFlutterWarnImpl(key: 'test'),
-          svg.attributes.toAttributeMap(),
+          errorDelegate,
+          svg.attributes.toAttributeMap().typedGet,
           null,
           null,
           fontSize: fontSize,
@@ -339,8 +310,8 @@ void main() {
         ).first as XmlStartElementEvent;
         const double fontSize = 26.0;
         final DsvgDrawableStyle svgStyle = parseStyle(
-          const SvgErrorDelegateFlutterWarnImpl(key: 'test'),
-          svg.attributes.toAttributeMap(),
+          errorDelegate,
+          svg.attributes.toAttributeMap().typedGet,
           null,
           null,
           fontSize: fontSize,
@@ -360,8 +331,8 @@ void main() {
         const double fontSize = 26.0;
         const double xHeight = 11.0;
         final DsvgDrawableStyle svgStyle = parseStyle(
-          const SvgErrorDelegateFlutterWarnImpl(key: 'test'),
-          svg.attributes.toAttributeMap(),
+          errorDelegate,
+          svg.attributes.toAttributeMap().typedGet,
           null,
           null,
           fontSize: fontSize,
@@ -379,8 +350,8 @@ void main() {
         const double fontSize = 26.0;
         const double xHeight = 11.0;
         final DsvgDrawableStyle svgStyle = parseStyle(
-          const SvgErrorDelegateFlutterWarnImpl(key: 'test'),
-          svg.attributes.toAttributeMap(),
+          errorDelegate,
+          svg.attributes.toAttributeMap().typedGet,
           null,
           null,
           fontSize: fontSize,
@@ -409,8 +380,8 @@ void main() {
         const double fontSize = 26.0;
         const double xHeight = 11.0;
         final DsvgDrawableStyle svgStyle = parseStyle(
-          const SvgErrorDelegateFlutterWarnImpl(key: 'test'),
-          svg.attributes.toAttributeMap(),
+          errorDelegate,
+          svg.attributes.toAttributeMap().typedGet,
           null,
           null,
           fontSize: fontSize,

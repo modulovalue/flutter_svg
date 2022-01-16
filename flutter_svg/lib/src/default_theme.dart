@@ -1,15 +1,15 @@
 import 'package:dart_svg/dsl/dsvg.dart';
 import 'package:flutter/widgets.dart';
 
-/// The SVG theme to apply to descendant [SvgPicture] widgets
+/// The SVG theme to apply to descendant SvgPicture widgets
 /// which don't have explicit theme values.
-class DefaultSvgTheme extends InheritedTheme {
+class DefaultDsvgTheme extends InheritedTheme {
   /// Creates a default SVG theme for the given subtree
   /// using the provided [theme].
-  const DefaultSvgTheme({
-    final Key? key,
+  const DefaultDsvgTheme({
     required final Widget child,
     required final this.theme,
+    final Key? key,
   }) : super(
           key: key,
           child: child,
@@ -25,14 +25,14 @@ class DefaultSvgTheme extends InheritedTheme {
   /// ```dart
   /// DefaultSvgTheme theme = DefaultSvgTheme.of(context);
   /// ```
-  static DefaultSvgTheme? of(
+  static DefaultDsvgTheme? of(
     final BuildContext context,
   ) =>
-      context.dependOnInheritedWidgetOfExactType<DefaultSvgTheme>();
+      context.dependOnInheritedWidgetOfExactType<DefaultDsvgTheme>();
 
   @override
   bool updateShouldNotify(
-    final DefaultSvgTheme oldWidget,
+    final DefaultDsvgTheme oldWidget,
   ) =>
       theme != oldWidget.theme;
 
@@ -41,7 +41,7 @@ class DefaultSvgTheme extends InheritedTheme {
     final BuildContext context,
     final Widget child,
   ) =>
-      DefaultSvgTheme(
+      DefaultDsvgTheme(
         theme: theme,
         child: child,
       );

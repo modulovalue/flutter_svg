@@ -1,7 +1,8 @@
+// ignore_for_file: prefer_asserts_with_message
+
 import 'dart:async';
 import 'dart:convert';
 import 'dart:typed_data';
-import 'dart:ui' show Picture;
 
 import 'package:dart_svg/dsl/dsvg.dart';
 import 'package:dart_svg/parser/parser.dart';
@@ -85,7 +86,7 @@ class SvgPicture extends StatefulWidget {
   /// viewBox.
   final bool allowDrawingOutsideViewBox;
 
-  /// The [Semantics.label] for this picture.
+  /// The Semantics.label for this picture.
   ///
   /// The value indicates the purpose of the picture, and will be
   /// read out by screen readers.
@@ -114,7 +115,7 @@ class SvgPicture extends StatefulWidget {
   /// multiple colors, but false if it will always (or almost always) be
   /// rendered with the same [colorFilter].
   ///
-  /// If [Svg.cacheColorFilterOverride] is not null, it will override this value
+  /// If [cacheColorFilterOverride] is not null, it will override this value
   /// for all widgets, regardless of what is specified for an individual widget.
   ///
   /// This defaults to false and must not be null.
@@ -159,14 +160,14 @@ class _SvgPictureState extends State<SvgPicture> {
   }
 
   /// Updates the `currentColor` of the picture provider based on
-  /// either the widget's [DsvgTheme] or an inherited [DefaultSvgTheme].
+  /// either the widget's [DsvgTheme] or an inherited [DefaultDsvgTheme].
   ///
   /// Updates the `fontSize` of the picture provider based on
-  /// either the widget's [DsvgTheme], an inherited [DefaultSvgTheme]
+  /// either the widget's [DsvgTheme], an inherited [DefaultDsvgTheme]
   /// or an inherited [DefaultTextStyle]. If the property does not exist,
   /// then the font size defaults to 14.
   void _updatePictureProvider() {
-    final DsvgTheme? defaultSvgTheme = DefaultSvgTheme.of(context)?.theme;
+    final DsvgTheme? defaultSvgTheme = DefaultDsvgTheme.of(context)?.theme;
     final TextStyle defaultTextStyle = DefaultTextStyle.of(context).style;
     final DsvgColor? currentColor = widget.theme?.currentColor ?? defaultSvgTheme?.currentColor;
     final double fontSize = widget.theme?.fontSize ??
@@ -334,12 +335,12 @@ Future<PictureInfo> svgPictureStringDecoder(
   final SvgErrorDelegate errorDelegate, {
   final DsvgTheme theme = const DsvgThemeImpl(),
 }) async {
-  final DsvgParentRoot svgRoot = parseSvg(
+  final svgRoot = parseSvg(
     xml: raw,
     errorDelegate: errorDelegate,
     theme: theme,
   ).root;
-  final Picture pic = await renderDrawableRootToPicture(
+  final pic = await renderRootToPicture(
     drawableRoot: svgRoot,
     clipToViewBox: () {
       if (allowDrawingOutsideOfViewBox == true) {
@@ -349,9 +350,6 @@ Future<PictureInfo> svgPictureStringDecoder(
       }
     }(),
     colorFilter: colorFilter,
-    size: dsvgSizeToFlutter(
-      svgRoot.viewport.viewBox,
-    ),
   );
   return PictureInfo(
     picture: pic,
@@ -423,24 +421,8 @@ Future<void> precachePicture(
 /// retrieve, e.g. from a network location.
 final WidgetBuilder _defaultPlaceholderBuilder = (final BuildContext ctx) => const LimitedBox();
 
-/// A [PictureInfoDecoderBuilder] for [Uint8List]s that will clip to the viewBox.
-final PictureInfoDecoderBuilder<Uint8List> svgByteDecoderBuilder =
-    _svgByteDecoderIsOutsideViewBoxBuilder(false);
-
 /// A [PictureInfoDecoderBuilder] for [Uint8List]s that will not clip to the viewBox.
-final PictureInfoDecoderBuilder<Uint8List> svgByteDecoderOutsideViewBoxBuilder =
-    _svgByteDecoderIsOutsideViewBoxBuilder(true);
-
-/// A [PictureInfoDecoderBuilder] for strings that will clip to the viewBox.
-final PictureInfoDecoderBuilder<String> svgStringDecoderBuilder =
-    _svgStringDecoderIsOutsideViewBoxBuilder(false);
-
-/// A [PictureInfoDecoderBuilder] for strings that will not clip to the viewBox.
-final PictureInfoDecoderBuilder<String> svgStringDecoderBuilderOutsideViewBoxBuilder =
-    _svgStringDecoderIsOutsideViewBoxBuilder(false);
-
-/// A [PictureInfoDecoderBuilder] for [Uint8List]s that will not clip to the viewBox.
-PictureInfoDecoderBuilder<Uint8List> _svgByteDecoderIsOutsideViewBoxBuilder(
+PictureInfoDecoderBuilder<Uint8List> svgByteDecoderIsOutsideViewBoxBuilder(
   final bool outsideViewBox,
 ) =>
     (final DsvgTheme theme) => (
@@ -461,7 +443,7 @@ PictureInfoDecoderBuilder<Uint8List> _svgByteDecoderIsOutsideViewBoxBuilder(
             );
 
 /// A [PictureInfoDecoderBuilder] for [String]s.
-PictureInfoDecoderBuilder<String> _svgStringDecoderIsOutsideViewBoxBuilder(
+PictureInfoDecoderBuilder<String> svgStringDecoderIsOutsideViewBoxBuilder(
   final bool outsideViewBox,
 ) =>
     (final DsvgTheme theme) => (

@@ -1,9 +1,9 @@
 import 'dart:collection';
 
-import 'package:vector_math/vector_math_64.dart';
 import 'package:xml/xml_events.dart';
 
 import '../dsl/dsvg.dart';
+import '../dsl/dsvg_affine_matrix.dart';
 import '../parser/parse_attribute.dart';
 import '../parser/parse_color.dart';
 import '../parser/parse_decimal_or_percentage.dart';
@@ -33,7 +33,7 @@ SuccessfullyHandled? parseElement({
     final String? def,
   }) =>
       getAttribute(
-        parserState.currentAttributes,
+        parserState.currentAttributes.typedGet,
         name,
         def: def,
       );
@@ -43,10 +43,10 @@ SuccessfullyHandled? parseElement({
     final DsvgOffset? lastOffset,
     final DsvgTheme theme,
   ) {
-    final String? x = attribute('x', def: null);
-    final String? y = attribute('y', def: null);
-    final double fontSize = theme.fontSize;
-    final double xHeight = theme.xHeight;
+    final x = attribute('x', def: null);
+    final y = attribute('y', def: null);
+    final fontSize = theme.fontSize;
+    final xHeight = theme.xHeight;
     return DsvgOffset(
       x: () {
         if (x != null) {
@@ -54,13 +54,13 @@ SuccessfullyHandled? parseElement({
             x,
             fontSize: fontSize,
             xHeight: xHeight,
-          )!;
+          );
         } else {
           return parseDoubleWithUnits(
-                attribute('dx', def: '0'),
+                attribute('dx', def: '0')!,
                 fontSize: fontSize,
                 xHeight: xHeight,
-              )! +
+              ) +
               (lastOffset?.x ?? 0);
         }
       }(),
@@ -70,13 +70,13 @@ SuccessfullyHandled? parseElement({
             y,
             fontSize: fontSize,
             xHeight: xHeight,
-          )!;
+          );
         } else {
           return parseDoubleWithUnits(
-                attribute('dy', def: '0'),
+                attribute('dy', def: '0')!,
                 fontSize: fontSize,
                 xHeight: xHeight,
-              )! +
+              ) +
               (lastOffset?.y ?? 0);
         }
       }(),
@@ -88,25 +88,25 @@ SuccessfullyHandled? parseElement({
     final List<DsvgColor> colors,
     final List<double> offsets,
   ) {
-    final DsvgParent parent = parserState.current!;
-    for (final XmlEvent event in parserState.readSubtree()) {
+    final parent = parserState.current!;
+    for (final event in parserState.readSubtree()) {
       if (event is XmlStartElementEvent) {
-        final String? rawOpacity = getAttribute(
-          parserState.currentAttributes,
+        final rawOpacity = getAttribute(
+          parserState.currentAttributes.typedGet,
           'stop-opacity',
           def: '1',
         );
         final DsvgColor stopColor = svgColorStringToColor(
-              getAttribute(parserState.currentAttributes, 'stop-color', def: ''),
+              getAttribute(parserState.currentAttributes.typedGet, 'stop-color', def: ''),
             ) ??
             parent.matchParent(
               root: (final a) => a.groupData.color,
               group: (final a) => a.groupData.color,
             ) ??
             const DsvgColor(0xFF000000);
-        colors.add(stopColor.withOpacity(parseDouble(rawOpacity)!));
-        final String rawOffset = getAttribute(
-          parserState.currentAttributes,
+        colors.add(stopColor.withOpacity(parseDouble(rawOpacity!)));
+        final rawOffset = getAttribute(
+          parserState.currentAttributes.typedGet,
           'offset',
           def: '0%',
         )!;
@@ -117,14 +117,14 @@ SuccessfullyHandled? parseElement({
   }
 
   void svg() {
-    final DsvgViewport? viewBox = parseViewBox(
-      parserState.currentAttributes,
+    final viewBox = parseViewBoxAndDimensions(
+      parserState.currentAttributes.typedGet,
       fontSize: theme.fontSize,
       xHeight: theme.xHeight,
       errorDelegate: errorDelegate,
     );
-    final String? id = attribute('id', def: '');
-    final DsvgColor? color = svgColorStringToColor(
+    final id = attribute('id', def: '');
+    final color = svgColorStringToColor(
           attribute(
             'color',
             def: null,
@@ -147,7 +147,7 @@ SuccessfullyHandled? parseElement({
             children: <DsvgDrawable>[],
             style: parseStyle(
               parserState.errorDelegate,
-              parserState.currentAttributes,
+              parserState.currentAttributes.typedGet,
               parserState.definitions,
               null,
               currentColor: color,
@@ -170,7 +170,7 @@ SuccessfullyHandled? parseElement({
           children: <DsvgDrawable>[],
           style: parseStyle(
             parserState.errorDelegate,
-            parserState.currentAttributes,
+            parserState.currentAttributes.typedGet,
             parserState.definitions,
             null,
             currentColor: color,
@@ -189,8 +189,8 @@ SuccessfullyHandled? parseElement({
   }
 
   void g() {
-    final DsvgParent parent = parserState.current!;
-    final DsvgColor? color = svgColorStringToColor(
+    final parent = parserState.current!;
+    final color = svgColorStringToColor(
           attribute(
             'color',
             def: null,
@@ -200,13 +200,13 @@ SuccessfullyHandled? parseElement({
           root: (final a) => a.groupData.color,
           group: (final a) => a.groupData.color,
         );
-    final DsvgParentGroup group = DsvgParentGroup(
+    final group = DsvgParentGroup(
       id: attribute('id', def: ''),
       groupData: DsvgGroupData(
         children: <DsvgDrawable>[],
         style: parseStyle(
           parserState.errorDelegate,
-          parserState.currentAttributes,
+          parserState.currentAttributes.typedGet,
           parserState.definitions,
           parent.matchParent(
             root: (final a) => a.groupData.style,
@@ -216,7 +216,7 @@ SuccessfullyHandled? parseElement({
           fontSize: theme.fontSize,
           xHeight: theme.xHeight,
         ),
-        transform: parseTransform(attribute('transform'))?.storage,
+        transform: parseTransform(attribute('transform')),
         color: color,
       ),
       sourceLocation: xmlEventToDsvgSourceLocation(
@@ -238,12 +238,12 @@ SuccessfullyHandled? parseElement({
   }
 
   void use() {
-    final DsvgParent? parent = parserState.current;
-    final String xlinkHref = getHrefAttribute(parserState.currentAttributes)!;
+    final parent = parserState.current;
+    final xlinkHref = getHrefAttribute(parserState.currentAttributes.typedGet)!;
     if (xlinkHref.isNotEmpty) {
-      final DsvgDrawableStyle style = parseStyle(
+      final style = parseStyle(
         parserState.errorDelegate,
-        parserState.currentAttributes,
+        parserState.currentAttributes.typedGet,
         parserState.definitions,
         parent!.matchParent(
           root: (final a) => a.groupData.style,
@@ -256,21 +256,21 @@ SuccessfullyHandled? parseElement({
         fontSize: theme.fontSize,
         xHeight: theme.xHeight,
       );
-      final Matrix4 transform = parseTransform(attribute('transform')) ?? Matrix4.identity();
-      transform.translate(
-        parseDoubleWithUnits(
+      final transform = DsvgAffineTranslation(
+        matrix: parseTransform(attribute('transform')),
+        x: tryParseDoubleWithUnits(
           attribute('x', def: '0'),
           fontSize: theme.fontSize,
           xHeight: theme.xHeight,
-        ),
-        parseDoubleWithUnits(
+        )!,
+        y: tryParseDoubleWithUnits(
           attribute('y', def: '0'),
           fontSize: theme.fontSize,
           xHeight: theme.xHeight,
         )!,
       );
-      final DsvgDrawableStyleable ref = parserState.definitions.getDrawable('url($xlinkHref)')!;
-      final DsvgDrawableStyleable<DsvgDrawableParent<DsvgParentGroup>> group = DsvgDrawableStyleable(
+      final ref = parserState.definitions.getDrawable('url($xlinkHref)');
+      final group = DsvgDrawableStyleable(
         styleable: DsvgDrawableParent(
           parent: DsvgParentGroup(
             sourceLocation: xmlEventToDsvgSourceLocation(
@@ -287,14 +287,13 @@ SuccessfullyHandled? parseElement({
                 ),
               ],
               style: style,
-              transform: transform.storage,
+              transform: transform,
               color: null,
-
             ),
           ),
         ),
       );
-      final bool isIri = parserState.checkForIri(group);
+      final isIri = parserState.checkForIri(group);
       if (!parserState.inDefs || !isIri) {
         parent
             .matchParent(
@@ -307,8 +306,8 @@ SuccessfullyHandled? parseElement({
   }
 
   void symbol() {
-    final DsvgParent parent = parserState.current!;
-    final DsvgColor? color2 = svgColorStringToColor(
+    final parent = parserState.current!;
+    final color2 = svgColorStringToColor(
           attribute(
             'color',
             def: null,
@@ -329,7 +328,7 @@ SuccessfullyHandled? parseElement({
           children: <DsvgDrawable>[],
           style: parseStyle(
             parserState.errorDelegate,
-            parserState.currentAttributes,
+            parserState.currentAttributes.typedGet,
             parserState.definitions,
             parent.matchParent(
               root: (final a) => a.groupData.style,
@@ -341,7 +340,7 @@ SuccessfullyHandled? parseElement({
           ),
           transform: parseTransform(
             attribute('transform'),
-          )?.storage,
+          ),
           color: color2,
         ),
       ),
@@ -349,31 +348,33 @@ SuccessfullyHandled? parseElement({
   }
 
   void radialGradient() {
-    final double fontSize = theme.fontSize;
-    final double xHeight = theme.xHeight;
-    final String? gradientUnits = getAttribute(
-      parserState.currentAttributes,
+    final fontSize = theme.fontSize;
+    final xHeight = theme.xHeight;
+    final gradientUnits = getAttribute(
+      parserState.currentAttributes.typedGet,
       'gradientUnits',
       def: null,
     );
     bool isObjectBoundingBox = gradientUnits != 'userSpaceOnUse';
-    final String? rawCx = attribute('cx', def: '50%');
-    final String? rawCy = attribute('cy', def: '50%');
-    final String? rawR = attribute('r', def: '50%');
-    final String? rawFx = attribute('fx', def: rawCx);
-    final String? rawFy = attribute('fy', def: rawCy);
-    final DsvgTileMode spreadMethod = parseTileMode(parserState.currentAttributes);
-    final String id = parseUrlIri(
-      attributes: parserState.currentAttributes,
+    final rawCx = attribute('cx', def: '50%');
+    final rawCy = attribute('cy', def: '50%');
+    final rawR = attribute('r', def: '50%');
+    final rawFx = attribute('fx', def: rawCx);
+    final rawFy = attribute('fy', def: rawCy);
+    final spreadMethod = parseTileMode(
+      parserState.currentAttributes.typedGet,
     );
-    final Matrix4? originalTransform = parseTransform(
+    final id = parseUrlIri(
+      attributes: parserState.currentAttributes.typedGet,
+    );
+    final originalTransform = parseTransform(
       attribute('gradientTransform', def: null),
     );
-    final List<double> offsets = <double>[];
-    final List<DsvgColor> colors = <DsvgColor>[];
+    final offsets = <double>[];
+    final colors = <DsvgColor>[];
     if (parserState.currentStartElement!.isSelfClosing) {
-      final String? href = getHrefAttribute(parserState.currentAttributes);
-      final DsvgGradient? ref = parserState.definitions.getGradient<DsvgGradient>('url($href)');
+      final href = getHrefAttribute(parserState.currentAttributes.typedGet);
+      final ref = parserState.definitions.getGradient<DsvgGradient>('url($href)');
       if (ref == null) {
         parserState.errorDelegate.reportMissingDef(
           href,
@@ -389,8 +390,12 @@ SuccessfullyHandled? parseElement({
     } else {
       _parseStops(parserState, colors, offsets);
     }
-    late double cx, cy, r, fx, fy;
-    final DsvgRect rootBounds = parserState.absoluteRoot!.viewport.viewBoxRect;
+    late double cx;
+    late double cy;
+    late double r;
+    late double fx;
+    late double fy;
+    final rootBounds = parserState.absoluteRoot!.viewport.viewBoxRect;
     if (isObjectBoundingBox) {
       cx = parseDecimalOrPercentage(rawCx!);
       cy = parseDecimalOrPercentage(rawCy!);
@@ -402,35 +407,35 @@ SuccessfullyHandled? parseElement({
         if (isPercentage(rawCx!)) {
           return parsePercentage(rawCx) * rootBounds.width + rootBounds.left;
         } else {
-          return parseDoubleWithUnits(rawCx, fontSize: fontSize, xHeight: xHeight)!;
+          return parseDoubleWithUnits(rawCx, fontSize: fontSize, xHeight: xHeight);
         }
       }();
       cy = () {
         if (isPercentage(rawCy!)) {
           return parsePercentage(rawCy) * rootBounds.height + rootBounds.top;
         } else {
-          return parseDoubleWithUnits(rawCy, fontSize: fontSize, xHeight: xHeight)!;
+          return parseDoubleWithUnits(rawCy, fontSize: fontSize, xHeight: xHeight);
         }
       }();
       r = () {
         if (isPercentage(rawR!)) {
           return parsePercentage(rawR) * ((rootBounds.height + rootBounds.width) / 2);
         } else {
-          return parseDoubleWithUnits(rawR, fontSize: fontSize, xHeight: xHeight)!;
+          return parseDoubleWithUnits(rawR, fontSize: fontSize, xHeight: xHeight);
         }
       }();
       fx = () {
         if (isPercentage(rawFx!)) {
           return parsePercentage(rawFx) * rootBounds.width + rootBounds.left;
         } else {
-          return parseDoubleWithUnits(rawFx, fontSize: fontSize, xHeight: xHeight)!;
+          return parseDoubleWithUnits(rawFx, fontSize: fontSize, xHeight: xHeight);
         }
       }();
       fy = () {
         if (isPercentage(rawFy!)) {
           return parsePercentage(rawFy) * rootBounds.height + rootBounds.top;
         } else {
-          return parseDoubleWithUnits(rawFy, fontSize: fontSize, xHeight: xHeight)!;
+          return parseDoubleWithUnits(rawFy, fontSize: fontSize, xHeight: xHeight);
         }
       }();
     }
@@ -465,34 +470,34 @@ SuccessfullyHandled? parseElement({
           }
         }(),
         spreadMethod: spreadMethod,
-        transform: originalTransform?.storage,
+        transform: originalTransform,
       ),
     );
   }
 
   void linearGradient() {
-    final double fontSize = theme.fontSize;
-    final double xHeight = theme.xHeight;
-    final String? gradientUnits = getAttribute(
-      parserState.currentAttributes,
+    final fontSize = theme.fontSize;
+    final xHeight = theme.xHeight;
+    final gradientUnits = getAttribute(
+      parserState.currentAttributes.typedGet,
       'gradientUnits',
       def: null,
     );
     bool isObjectBoundingBox = gradientUnits != 'userSpaceOnUse';
-    final String? x1 = attribute('x1', def: '0%');
-    final String? x2 = attribute('x2', def: '100%');
-    final String? y1 = attribute('y1', def: '0%');
-    final String? y2 = attribute('y2', def: '0%');
-    final String id = parseUrlIri(attributes: parserState.currentAttributes);
-    final Matrix4? originalTransform = parseTransform(
+    final x1 = attribute('x1', def: '0%');
+    final x2 = attribute('x2', def: '100%');
+    final y1 = attribute('y1', def: '0%');
+    final y2 = attribute('y2', def: '0%');
+    final id = parseUrlIri(attributes: parserState.currentAttributes.typedGet);
+    final originalTransform = parseTransform(
       attribute('gradientTransform', def: null),
     );
-    final DsvgTileMode spreadMethod = parseTileMode(parserState.currentAttributes);
-    final List<DsvgColor> colors = <DsvgColor>[];
-    final List<double> offsets = <double>[];
+    final spreadMethod = parseTileMode(parserState.currentAttributes.typedGet);
+    final colors = <DsvgColor>[];
+    final offsets = <double>[];
     if (parserState.currentStartElement!.isSelfClosing) {
-      final String? href = getHrefAttribute(parserState.currentAttributes);
-      final DsvgGradient? ref = parserState.definitions.getGradient<DsvgGradient>('url($href)');
+      final href = getHrefAttribute(parserState.currentAttributes.typedGet);
+      final ref = parserState.definitions.getGradient<DsvgGradient>('url($href)');
       if (ref == null) {
         parserState.errorDelegate.reportMissingDef(
           href,
@@ -508,7 +513,7 @@ SuccessfullyHandled? parseElement({
     } else {
       _parseStops(parserState, colors, offsets);
     }
-    final DsvgRect rootBounds = parserState.absoluteRoot!.viewport.viewBoxRect;
+    final rootBounds = parserState.absoluteRoot!.viewport.viewBoxRect;
     DsvgOffset fromOffset;
     DsvgOffset toOffset;
     if (isObjectBoundingBox) {
@@ -526,14 +531,14 @@ SuccessfullyHandled? parseElement({
           if (isPercentage(x1!)) {
             return parsePercentage(x1) * rootBounds.width + rootBounds.left;
           } else {
-            return parseDoubleWithUnits(x1, fontSize: fontSize, xHeight: xHeight)!;
+            return parseDoubleWithUnits(x1, fontSize: fontSize, xHeight: xHeight);
           }
         }(),
         y: () {
           if (isPercentage(y1!)) {
             return parsePercentage(y1) * rootBounds.height + rootBounds.top;
           } else {
-            return parseDoubleWithUnits(y1, fontSize: fontSize, xHeight: xHeight)!;
+            return parseDoubleWithUnits(y1, fontSize: fontSize, xHeight: xHeight);
           }
         }(),
       );
@@ -542,14 +547,14 @@ SuccessfullyHandled? parseElement({
           if (isPercentage(x2!)) {
             return parsePercentage(x2) * rootBounds.width + rootBounds.left;
           } else {
-            return parseDoubleWithUnits(x2, fontSize: fontSize, xHeight: xHeight)!;
+            return parseDoubleWithUnits(x2, fontSize: fontSize, xHeight: xHeight);
           }
         }(),
         y: () {
           if (isPercentage(y2!)) {
             return parsePercentage(y2) * rootBounds.height + rootBounds.top;
           } else {
-            return parseDoubleWithUnits(y2, fontSize: fontSize, xHeight: xHeight)!;
+            return parseDoubleWithUnits(y2, fontSize: fontSize, xHeight: xHeight);
           }
         }(),
       );
@@ -569,31 +574,31 @@ SuccessfullyHandled? parseElement({
             return DsvgGradientUnitMode.userSpaceOnUse;
           }
         }(),
-        transform: originalTransform?.storage,
+        transform: originalTransform,
       ),
     );
   }
 
   void clipPath() {
-    final String id = parseUrlIri(
-      attributes: parserState.currentAttributes,
+    final id = parseUrlIri(
+      attributes: parserState.currentAttributes.typedGet,
     );
-    final List<DsvgPath> paths = <DsvgPath>[];
+    final paths = <DsvgPath>[];
     DsvgPathFillTypeSet? currentPath;
-    for (final XmlEvent event in parserState.readSubtree()) {
+    for (final event in parserState.readSubtree()) {
       if (event is XmlStartElementEvent) {
-        final DsvgPath Function()? pathFn = parsePath(
+        final pathFn = parsePath(
           pathName: event.name,
-          attributes: parserState.currentAttributes,
+          attributes: parserState.currentAttributes.typedGet,
           fontSize: theme.fontSize,
           xHeight: theme.xHeight,
         );
         if (pathFn != null) {
-          final DsvgPathFillTypeSet nextPath = DsvgPathFillTypeSet(
+          final nextPath = DsvgPathFillTypeSet(
             path: () {
-              final Matrix4? transform = parseTransform(
+              final transform = parseTransform(
                 getAttribute(
-                  parserState.currentAttributes,
+                  parserState.currentAttributes.typedGet,
                   'transform',
                   def: null,
                 ),
@@ -608,7 +613,7 @@ SuccessfullyHandled? parseElement({
               }
             }(),
             fillType: parseFillRule(
-              parserState.currentAttributes,
+              parserState.currentAttributes.typedGet,
               'clip-rule',
             )!,
           );
@@ -622,11 +627,12 @@ SuccessfullyHandled? parseElement({
             paths.add(nextPath);
           }
         } else if (event.name == 'use') {
-          final String? xlinkHref = getHrefAttribute(parserState.currentAttributes);
-          final DsvgDrawableStyleable? definitionDrawable =
-              parserState.definitions.getDrawable('url($xlinkHref)');
-          void extractPathsFromDrawable(DsvgDrawable? target) {
-            target?.match(
+          final xlinkHref = getHrefAttribute(parserState.currentAttributes.typedGet);
+          final definitionDrawable = parserState.definitions.getDrawable('url($xlinkHref)');
+          void extractPathsFromDrawable(
+            final DsvgDrawable target,
+          ) {
+            target.match(
               text: (final a) {},
               styleable: (final a) => a.styleable.matchStyleable(
                 parent: (final a) => a.parent.matchParent(
@@ -653,48 +659,48 @@ SuccessfullyHandled? parseElement({
   }
 
   void image() {
-    final double fontSize = theme.fontSize;
-    final double xHeight = theme.xHeight;
-    final String? href = getHrefAttribute(parserState.currentAttributes);
+    final fontSize = theme.fontSize;
+    final xHeight = theme.xHeight;
+    final href = getHrefAttribute(parserState.currentAttributes.typedGet);
     if (href == null) {
       return;
     } else {
-      final DsvgOffset offset = DsvgOffset(
+      final offset = DsvgOffset(
         x: parseDoubleWithUnits(
-          attribute('x', def: '0'),
+          attribute('x', def: '0')!,
           fontSize: fontSize,
           xHeight: xHeight,
-        )!,
+        ),
         y: parseDoubleWithUnits(
-          attribute('y', def: '0'),
+          attribute('y', def: '0')!,
           fontSize: fontSize,
           xHeight: xHeight,
-        )!,
+        ),
       );
-      final DsvgSize size = DsvgSize(
+      final size = DsvgSize(
         w: parseDoubleWithUnits(
-          attribute('width', def: '0'),
+          attribute('width', def: '0')!,
           fontSize: fontSize,
           xHeight: xHeight,
-        )!,
+        ),
         h: parseDoubleWithUnits(
-          attribute('height', def: '0'),
+          attribute('height', def: '0')!,
           fontSize: fontSize,
           xHeight: xHeight,
-        )!,
+        ),
       );
-      final DsvgParent parent = parserState.current!;
-      final DsvgDrawableStyle? parentStyle = parent.matchParent(
+      final parent = parserState.current!;
+      final parentStyle = parent.matchParent(
         root: (final a) => a.groupData.style,
         group: (final a) => a.groupData.style,
       );
-      final DsvgDrawableRasterImage drawable = DsvgDrawableRasterImage(
+      final drawable = DsvgDrawableRasterImage(
         id: attribute('id', def: ''),
         imageHref: href,
         topLeftOffset: offset,
         style: parseStyle(
           parserState.errorDelegate,
-          parserState.currentAttributes,
+          parserState.currentAttributes.typedGet,
           parserState.definitions,
           parentStyle,
           currentColor: parent.matchParent(
@@ -705,9 +711,9 @@ SuccessfullyHandled? parseElement({
           xHeight: theme.xHeight,
         ),
         targetSize: size,
-        transform: parseTransform(attribute('transform'))?.storage,
+        transform: parseTransform(attribute('transform')),
       );
-      final bool isIri = parserState.checkForIri(
+      final isIri = parserState.checkForIri(
         DsvgDrawableStyleable(styleable: drawable),
       );
       if (!parserState.inDefs || !isIri) {
@@ -730,140 +736,146 @@ SuccessfullyHandled? parseElement({
     );
     if (parserState.currentStartElement!.isSelfClosing) {
       return;
-    }
-    // <text>, <tspan> -> Collect styles
-    // <tref> TBD - looks like Inkscape supports it, but no browser does.
-    // XmlNodeType.TEXT/CDATA -> DrawableText
-    // Track the style(s) and offset(s) for <text> and <tspan> elements
-    final Queue<_TextInfo> textInfos = ListQueue<_TextInfo>();
-    void _processStartElement(
-      final XmlStartElementEvent event,
-    ) {
-      _TextInfo? lastTextInfo;
-      if (textInfos.isNotEmpty) {
-        lastTextInfo = textInfos.last;
-      }
-      final DsvgOffset currentOffset = _parseCurrentOffset(
-        parserState,
-        lastTextInfo?.offset.translate(0, 0),
-        theme,
-      );
-      Matrix4? transform = parseTransform(attribute('transform'));
-      if (lastTextInfo?.transform != null) {
-        if (transform == null) {
-          transform = lastTextInfo!.transform;
-        } else {
-          transform = lastTextInfo!.transform!.multiplied(transform);
-        }
-      }
-      final DsvgDrawableStyle? parentStyle = lastTextInfo?.style ??
-          parserState.current!.matchParent(
-            root: (final a) => a.groupData.style,
-            group: (final a) => a.groupData.style,
-          );
-      textInfos.add(
-        _TextInfo(
-          parseStyle(
-            parserState.errorDelegate,
-            parserState.currentAttributes,
-            parserState.definitions,
-            parentStyle,
-            fontSize: theme.fontSize,
-            xHeight: theme.xHeight,
-          ),
-          currentOffset,
-          transform,
-        ),
-      );
-      if (event.isSelfClosing) {
-        textInfos.removeLast();
-      }
-    }
-
-    _processStartElement(
-      parserState.currentStartElement!,
-    );
-    final DsvgRect rootBounds = parserState.absoluteRoot!.viewport.viewBoxRect;
-    for (final XmlEvent event in parserState.readSubtree()) {
-      void _processText(
-        final String value,
+    } else {
+      // <text>, <tspan> -> Collect styles
+      // <tref> TBD - looks like Inkscape supports it, but no browser does.
+      // XmlNodeType.TEXT/CDATA -> DrawableText
+      // Track the style(s) and offset(s) for <text> and <tspan> elements
+      final textInfos = ListQueue<_TextInfo>();
+      void _processStartElement(
+        final XmlStartElementEvent event,
       ) {
-        if (value.isNotEmpty) {
-          assert(
-            textInfos.isNotEmpty,
-            "Text infos can't be empty.",
-          );
-          final _TextInfo lastTextInfo = textInfos.last;
-          final DsvgParagraph fill = DsvgParagraph(
-            rootBounds: rootBounds,
-            textValue: value,
-            style: lastTextInfo.style,
-            fill: lastTextInfo.style.fill,
-          );
-          final DsvgParagraph stroke = DsvgParagraph(
-            rootBounds: rootBounds,
-            textValue: value,
-            style: lastTextInfo.style,
-            fill: () {
-              if (drawablePaintIsEmpty(lastTextInfo.style.stroke)) {
-                // A [DrawablePaint] with a transparent stroke.
-                const DsvgPaint transparentStroke = DsvgPaint(
-                  DsvgPaintingStyle.stroke,
-                  color: DsvgColor(0x0),
-                );
-                return transparentStroke;
-              } else {
-                return lastTextInfo.style.stroke;
-              }
-            }(),
-          );
-          parserState.current!
-              .matchParent(
-                root: (final a) => a.groupData.children,
-                group: (final a) => a.groupData.children,
-              )
-              .add(
-                DsvgDrawableText(
-                  id: attribute('id', def: ''),
-                  fill: fill,
-                  stroke: stroke,
-                  offset: lastTextInfo.offset,
-                  anchor: lastTextInfo.style.textStyle!.anchor ?? DsvgDrawableTextAnchorPosition.start,
-                  transform: lastTextInfo.transform?.storage,
-                  sourceLocation: xmlEventToDsvgSourceLocation(
-                    event: event,
-                  ),
-                ),
-              );
+        _TextInfo? lastTextInfo;
+        if (textInfos.isNotEmpty) {
+          lastTextInfo = textInfos.last;
+        }
+        final currentOffset = _parseCurrentOffset(
+          parserState,
+          lastTextInfo?.offset,
+          theme,
+        );
+        DsvgAffineMatrix? transform = parseTransform(attribute('transform'));
+        final _transform = lastTextInfo?.transform;
+        if (_transform != null) {
+          if (transform == null) {
+            transform = _transform;
+          } else {
+            transform = DsvgAffineMatrixMultiply(
+              left: _transform,
+              right: transform,
+            );
+          }
+        }
+        final parentStyle = lastTextInfo?.style ??
+            parserState.current!.matchParent(
+              root: (final a) => a.groupData.style,
+              group: (final a) => a.groupData.style,
+            );
+        textInfos.add(
+          _TextInfo(
+            parseStyle(
+              parserState.errorDelegate,
+              parserState.currentAttributes.typedGet,
+              parserState.definitions,
+              parentStyle,
+              fontSize: theme.fontSize,
+              xHeight: theme.xHeight,
+            ),
+            currentOffset,
+            transform,
+          ),
+        );
+        if (event.isSelfClosing) {
+          textInfos.removeLast();
         }
       }
 
-      if (event is XmlCDATAEvent) {
-        _processText(
-          event.text.trim(),
-        );
-      } else if (event is XmlTextEvent) {
-        final String? space = getAttribute(
-          parserState.currentAttributes,
-          'space',
-          def: null,
-        );
-        if (space != 'preserve') {
+      _processStartElement(
+        parserState.currentStartElement!,
+      );
+      final rootBounds = parserState.absoluteRoot!.viewport.viewBoxRect;
+      for (final event in parserState.readSubtree()) {
+        void _processText(
+          final String value,
+        ) {
+          if (value.isNotEmpty) {
+            assert(
+              textInfos.isNotEmpty,
+              "Text infos can't be empty.",
+            );
+            final lastTextInfo = textInfos.last;
+            final fill = DsvgParagraph(
+              rootBounds: rootBounds,
+              textValue: value,
+              style: lastTextInfo.style,
+              fill: lastTextInfo.style.fill,
+            );
+            final stroke = DsvgParagraph(
+              rootBounds: rootBounds,
+              textValue: value,
+              style: lastTextInfo.style,
+              fill: () {
+                if (drawablePaintIsEmpty(lastTextInfo.style.stroke)) {
+                  // A [DrawablePaint] with a transparent stroke.
+                  const transparentStroke = DsvgPaint(
+                    DsvgPaintingStyle.stroke,
+                    color: DsvgColor(0x0),
+                  );
+                  return transparentStroke;
+                } else {
+                  return lastTextInfo.style.stroke;
+                }
+              }(),
+            );
+            parserState.current!
+                .matchParent(
+                  root: (final a) => a.groupData.children,
+                  group: (final a) => a.groupData.children,
+                )
+                .add(
+                  DsvgDrawableText(
+                    id: attribute('id', def: ''),
+                    fillInterior: fill,
+                    strokeOutline: stroke,
+                    positionOffset: lastTextInfo.offset,
+                    offsetAnchor:
+                        lastTextInfo.style.textStyle!.anchor ?? DsvgDrawableTextAnchorPosition.start,
+                    transform: lastTextInfo.transform,
+                    sourceLocation: xmlEventToDsvgSourceLocation(
+                      event: event,
+                    ),
+                  ),
+                );
+          }
+        }
+
+        if (event is XmlCDATAEvent) {
           _processText(
             event.text.trim(),
           );
-        } else {
-          _processText(
-            event.text.replaceAll(_trimPattern, ''),
+        } else if (event is XmlTextEvent) {
+          final space = getAttribute(
+            parserState.currentAttributes.typedGet,
+            'space',
+            def: null,
           );
+          if (space != 'preserve') {
+            _processText(
+              event.text.trim(),
+            );
+          } else {
+            _processText(
+              event.text.replaceAll(_trimPattern, ''),
+            );
+          }
         }
-      }
-      if (event is XmlStartElementEvent) {
-        _processStartElement(
-          event,
-        );
-      } else if (event is XmlEndElementEvent) {
-        textInfos.removeLast();
+        if (event is XmlStartElementEvent) {
+          _processStartElement(
+            event,
+          );
+        } else if (event is XmlEndElementEvent) {
+          textInfos.removeLast();
+        }
       }
     }
   }
@@ -922,5 +934,5 @@ class _TextInfo {
 
   final DsvgDrawableStyle style;
   final DsvgOffset offset;
-  final Matrix4? transform;
+  final DsvgAffineMatrix? transform;
 }

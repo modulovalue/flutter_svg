@@ -5,11 +5,11 @@ import '../parser/parse_double_with_units.dart';
 ///
 /// Does not currently support percentages.
 List<double>? parseDashArray(
-  final Map<String, String> attributes, {
+  final String? Function(String) attributes, {
   required double fontSize,
   required double xHeight,
 }) {
-  final String? rawDashArray = getAttribute(
+  final rawDashArray = getAttribute(
     attributes,
     'stroke-dasharray',
     def: '',
@@ -19,14 +19,14 @@ List<double>? parseDashArray(
   } else if (rawDashArray == 'none') {
     return <double>[];
   } else {
-    final List<String> parts = rawDashArray!.split(RegExp(r'[ ,]+'));
+    final parts = rawDashArray!.split(RegExp(r'[ ,]+'));
     return parts
         .map(
-          (final String part) => parseDoubleWithUnits(
+          (final part) => parseDoubleWithUnits(
             part,
             fontSize: fontSize,
             xHeight: xHeight,
-          )!,
+          ),
         )
         .toList();
   }
